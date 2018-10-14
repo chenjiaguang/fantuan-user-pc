@@ -3,6 +3,7 @@ import Router from 'vue-router'
 const HelloWorld = resolve => require(['@/components/HelloWorld'], resolve)
 const NotFoundPage = resolve => require(['@/pages/notFoundPage'], resolve)
 const ScanCode = resolve => require(['@/pages/scanCode'], resolve)
+const ActivityEdit = resolve => require(['@/pages/activityEdit'], resolve)
 
 Vue.use(Router)
 let prefix = '/user-pc'
@@ -32,6 +33,15 @@ const router = new Router({
       component: ScanCode,
       meta: {
         title: '扫码编辑',
+        keepAlive: false
+      }
+    },
+    {
+      path: prefix + '/activity/edit',
+      name: 'ActivityEdit',
+      component: ActivityEdit,
+      meta: {
+        title: '活动编辑',
         keepAlive: false
       }
     }

@@ -19,8 +19,10 @@ export default {
   -moz-osx-font-smoothing: grayscale;
 }
 body {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
+  background: #F4F4F4;
   color: #333;
 }
 *,
@@ -37,6 +39,11 @@ body {
 a {
   color: #333;
   text-decoration: none;
+}
+img{
+  margin: 0;
+  padding: 0;
+  border: none;
 }
 
 a:hover {
