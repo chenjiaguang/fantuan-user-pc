@@ -7,6 +7,12 @@
         <div class="circle fl">发布于“{{overview.account.name}}”群组</div>
       </div>
       <div class="basic-setting">
+        <div class="sava-tip-box">
+          <div class="save-tip-content">ctrl+s可以直接保存当前填写的内容</div>
+          <div class="box1"></div>
+          <div class="box2"></div>
+          <div class="box3"></div>
+        </div>
         <div class="setting-header" :style="{backgroundImage: 'url(' + $assetsPublicPath + '/cwebassets-pc/image/head_bg.png)'}">基本信息设置</div>
         <!-- 主题 -->
         <div class="form-item clearfix">
@@ -19,16 +25,6 @@
         <div class="form-item clearfix">
           <div class="form-left fl">活动封面</div>
           <div class="form-right fl clearfix">
-            <div class="cover-add fl" :style="{backgroundImage: 'url(' + ((form.cover.id && form.cover.url) ? form.cover.url : '') + ')', borderWidth: (form.cover.id && form.cover.url) ? 0 : '1px'}">
-              <div class="cover-btn" :class="{added: (form.cover.id && form.cover.url)}">
-                <div class="cover-btn-text">点击{{(form.cover.id && form.cover.url) ? '更换' : '添加'}}活动封面</div>
-              </div>
-            </div>
-            <div class="cover-tip fl">
-              <p class="cover-tip-title">温馨提示</p>
-              <p class="cover-tip-text">1. 建议尺寸<span style="color:#FF4242;">750*420</span>，按照16：9的比例选图</p>
-              <p class="cover-tip-text">2. 图片大小不超过10M</p>
-            </div>
             <el-upload
               class="avatar-uploader fl"
               :multiple="false"
@@ -36,8 +32,46 @@
               :show-file-list="false"
               :on-success="handleCoverSuccess"
               :before-upload="beforeCoverUpload">
-              上传
+              <div class="cover-add fl" :class="{added: (form.cover.id && form.cover.url)}" :style="{backgroundImage: 'url(' + ((form.cover.id && form.cover.url) ? form.cover.url : '') + ')'}">
+                <div class="cover-btn" :class="{added: (form.cover.id && form.cover.url)}">
+                  <div class="cover-btn-text">点击{{(form.cover.id && form.cover.url) ? '更换' : '添加'}}活动封面</div>
+                </div>
+              </div>
             </el-upload>
+            <div class="cover-tip fl">
+              <p class="cover-tip-title">温馨提示</p>
+              <p class="cover-tip-text">1. 建议尺寸<span style="color:#FF4242;">750*420</span>，按照16：9的比例选图</p>
+              <p class="cover-tip-text">2. 图片大小不超过10M</p>
+            </div>
+          </div>
+        </div>
+        <!-- 活动时间 -->
+        <div class="form-item clearfix">
+          <div class="form-left fl">活动时间</div>
+          <div class="form-right fl clearfix">
+            <el-date-picker
+              class="fl date-picker"
+              prefix-icon="iconfont icon-date"
+              :editable="false"
+              :clearable="false"
+              v-model="form.activity_time.start"
+              type="datetime"
+              placeholder="选择日期时间"
+              default-time="12:00:00"
+              :picker-options="pickerOptions.start">
+            </el-date-picker>
+            <div class="fl">至</div>
+            <el-date-picker
+              class="fl date-picker"
+              prefix-icon="iconfont icon-date"
+              :editable="false"
+              :clearable="false"
+              v-model="form.activity_time.end"
+              type="datetime"
+              placeholder="选择日期时间"
+              default-time="12:00:00"
+              :picker-options="pickerOptions.end">
+            </el-date-picker>
           </div>
         </div>
       </div>
@@ -50,11 +84,13 @@
 import Vue from 'vue'
 import TopNav from '@/components/TopNav'
 import Us from '@/components/Us'
-import { Upload } from 'element-ui'
+import { Upload, DatePicker } from 'element-ui'
 Vue.use(Upload)
+Vue.use(DatePicker)
 export default {
   data () {
     return {
+      value: '',
       canPreview: false,
       canPublish: false,
       overview: {
@@ -67,11 +103,39 @@ export default {
           name: '白日做梦'
         }
       },
+      pickerOptions: {
+        start: {
+          disabledDate: (currentDate) => {
+            let now = new Date()
+            now.setHours(0)
+            now.setMinutes(0)
+            now.setSeconds(0)
+            now.setMilliseconds(0)
+            return currentDate.getTime() < now.getTime()
+          }
+        },
+        end: {
+          disabledDate: (currentDate) => {
+            let start = this.form.activity_time.start
+            let now = new Date()
+            now.setHours(0)
+            now.setMinutes(0)
+            now.setSeconds(0)
+            now.setMilliseconds(0)
+            let target = start || now
+            return currentDate.getTime() < target.getTime()
+          }
+        }
+      },
       form: {
         name: '',
         cover: {
-          id: '5',
+          id: '',
           url: 'https://ss0.bdstatic.com/94oJfD_bAAcT8t7mm9GUKT-xh_/timg?image&quality=100&size=b4000_4000&sec=1539487911&di=5851f925ddb548b4048be227712c12b7&src=http://imgsrc.baidu.com/imgad/pic/item/c75c10385343fbf2618015f7ba7eca8064388fb2.jpg'
+        },
+        activity_time: {
+          start: '',
+          end: ''
         }
       }
     }
@@ -86,17 +150,35 @@ export default {
     },
     handleCoverSuccess (res, file) {
       console.log('handleCoverSuccess', res, file)
-      this.form.cover.if = res.data.id[0]
-      this.form.cover.url = URL.createObjectURL(file.raw);
+      this.form.cover.id = res.data.id[0]
+      // this.form.cover.url = URL.createObjectURL(file.raw)
+      this.form.cover.url = res.data.url[0]
     },
     beforeCoverUpload (file) {
       console.log('beforeCoverUpload', file)
-      const isLt10M = file.size / 1024 / 1024 < 10; // 限制上传图片小雨10M
+      const isLt10M = file.size / 1024 / 1024 < 10 // 限制上传图片小雨10M
       if (!isLt10M) {
-        this.$message.error('上传头像图片大小不能超过 10MB!');
+        this.$toast('上传头像图片大小不能超过 10MB!')
       }
-      return isJPG && isLt2M;
+      return isLt10M
+    },
+    saveContent (e) {
+      let eve = e || window.event
+      const isMac = /macintosh|mac os x/i.test(navigator.userAgent)
+      const controlDown = isMac ? eve.metaKey : eve.ctrlKey
+      if (eve.keyCode.toString() === '83' && controlDown) {
+        console.log('执行保存操作') // 执行保存操作
+        eve.preventDefault()
+        eve.stopPropagation()
+        return false
+      }
     }
+  },
+  mounted () {
+    document.addEventListener('keydown', this.saveContent, false)
+  },
+  beforeDestroy () {
+    document.removeEventListener('keydown', this.saveContent, false)
   }
 }
 </script>
@@ -104,6 +186,7 @@ export default {
 <style scoped>
 .page-main{
   width: 1200px;
+  margin: 0 auto;
 }
 .overview{
   width: 1000px;
@@ -127,7 +210,48 @@ export default {
   border-radius: 6px;
   background: #fff;
   margin: 10px auto 0;
-  overflow: hidden;
+  padding-top: 30px;
+  overflow: visible;
+  position: relative;
+}
+.sava-tip-box{
+  width: 120px;
+  font-size: 14px;
+  line-height: 20px;
+  position: absolute;
+  left: 981px;
+  top: 230px;
+  overflow: visible;
+}
+.save-tip-content{
+  padding: 7px 24px 7px 10px;
+  background: linear-gradient(90deg, rgba(0,154,255, 0.65), rgba(0,192,255,0.65));
+  border-radius: 0 37px 37px 0;
+  color: #fff;
+}
+.sava-tip-box .box1{
+  border-width: 0 26px 8px 0;
+  border-style: solid;
+  border-color: transparent #29AEFF transparent transparent;
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+}
+.sava-tip-box .box2{
+  width: 7px;
+  height: 8px;
+  background: #29AEFF;
+  position: absolute;
+  left: 19px;
+  bottom: -8px;
+}
+.sava-tip-box .box3{
+  border-width: 7px 7px 0 0;
+  border-style: solid;
+  border-color: #29AEFF transparent transparent transparent;
+  position: absolute;
+  left: 19px;
+  bottom: -15px;
 }
 .setting-header{
   width: 172px;
@@ -139,7 +263,6 @@ export default {
   background-position: center;
   background-repeat: no-repeat;
   text-align: center;
-  margin-top: 30px;
   padding-right: 12px;
 }
 .form-item{
@@ -182,6 +305,22 @@ export default {
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
+  position: relative;
+  cursor: pointer;
+}
+.cover-add.added{
+  border-width: 0;
+}
+.cover-add.added:hover:before{
+  content: "";
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  background-color: rgba(0,0,0,0.2);
+  z-index: 1
 }
 .cover-btn{
   width: 328px;
@@ -194,20 +333,20 @@ export default {
   background-position: center;
   background-size: 76px 67px;
   position: relative;
-  cursor: pointer;
+  z-index: 2;
 }
-.cover-btn:hover{
+.cover-add:hover .cover-btn{
   border-color: #009AFF;
   background-image: url('/user-pc/cwebassets-pc/image/add_cover_hover.png');
   background-size: 72px 63px;
 }
-.cover-btn.added{
+.cover-add.added .cover-btn{
   border-color: transparent;
   background-image: url('/user-pc/cwebassets-pc/image/add_cover_added.png');
   background-size: 76px 67px;
   opacity: 0;
 }
-.cover-btn.added:hover{
+.cover-add.added:hover .cover-btn{
   opacity: 1;
 }
 .cover-btn-text{
@@ -220,10 +359,10 @@ export default {
   bottom: 0;
   text-align: center;
 }
-.cover-btn:hover .cover-btn-text{
+.cover-add:hover .cover-btn-text{
   color: #009AFF;
 }
-.cover-btn.added:hover .cover-btn-text{
+.added:hover .cover-btn-text{
   color: #fff;
 }
 .cover-tip{
@@ -237,5 +376,17 @@ export default {
 }
 .cover-tip-text{
   color: #999;
+}
+
+.date-picker /deep/ .el-input__inner{
+  padding: 0 40px 0 10px;
+}
+.date-picker /deep/ .icon-date{
+  font-size: 24px;
+  color: #BCBCBC;
+}
+.date-picker /deep/ .el-input__prefix{
+  right: 8px;
+  left: unset;
 }
 </style>

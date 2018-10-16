@@ -50,7 +50,7 @@ export default {
       this.$emit('publish')
     },
     preview () {
-      if(!this.canPreview) {  // disabled状态
+      if (!this.canPreview) { // disabled状态
         return false
       }
       this.$emit('preview')
