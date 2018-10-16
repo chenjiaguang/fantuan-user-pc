@@ -2,7 +2,6 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import HelloWorld from '@/components/HelloWorld'
 import TestEditor from '@/pages/TestEditor'
-const HelloWorld = resolve => require(['@/components/HelloWorld'], resolve)
 const NotFoundPage = resolve => require(['@/pages/notFoundPage'], resolve)
 const ScanCode = resolve => require(['@/pages/scanCode'], resolve)
 const ActivityEdit = resolve => require(['@/pages/activityEdit'], resolve)
@@ -21,6 +20,8 @@ const router = new Router({
       path: prefix + '/testEditor',
       name: 'TestEditor',
       component: TestEditor
+    },
+    {
       path: '*', // 所有404页面，（未能正确匹配路由时显示的页面）
       name: 'NotFoundPage',
       meta: {
