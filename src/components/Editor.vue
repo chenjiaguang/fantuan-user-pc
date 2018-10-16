@@ -4,6 +4,7 @@
   </div>
 </template>
 <script>
+import editorConfig from '@/lib/editor-config'
 let editor = null
 export default {
   props: ['value'],
@@ -19,15 +20,12 @@ export default {
     this.create()
   },
   methods: {
-    getEditor () {
-      return editor
-    },
     create () {
       if (editor && editor.destroy) {
         editor.destroy()
         editor = null
       }
-      editor = global.CKEDITOR.replace(this.$refs.editor, [])
+      editor = global.CKEDITOR.replace(this.$refs.editor, editorConfig)
       editor.setData(this.value)
     }
   }
