@@ -80,10 +80,12 @@
         <div class="form-item clearfix">
           <div class="form-left fl">截止时间</div>
           <div class="form-right fl clearfix">
-            <el-radio class="fl" v-model="form.deadline" label="1">活动结束前均可报名</el-radio>
-            <el-radio class="fl" v-model="form.deadline" label="2">设置报名截止时间</el-radio>
-            <div class="fl center-sign">至</div>
+            <div class="deadline-left fl clearfix">
+              <el-radio @change="changeDeadline" class="fl form-radio" v-model="form.deadline" label="1">活动结束前均可报名</el-radio>
+              <el-radio @change="changeDeadline" class="fl form-radio" v-model="form.deadline" label="2">设置报名截止时间</el-radio>
+            </div>
             <el-date-picker
+              ref="deadlinePicker"
               class="fl date-picker"
               prefix-icon="iconfont icon-date"
               :disabled="form.deadline === '1'"
@@ -93,9 +95,38 @@
               type="datetime"
               placeholder="请选择截止时间"
               default-time="00:00:00"
-              :picker-options="pickerOptions.end"
-              @change="changeEnd">
+              :picker-options="pickerOptions.deadline"
+              @change="changeDeadlineDate">
             </el-date-picker>
+          </div>
+        </div>
+        <!-- 活动地点 -->
+        <div class="form-item clearfix">
+          <div class="form-left fl">活动地点</div>
+          <div class="form-right fl clearfix">
+            <div class="deadline-left fl clearfix">
+              <el-radio @change="changeAddress" class="fl form-radio" v-model="form.address" label="1">线上活动</el-radio>
+              <el-radio @change="changeAddress" class="fl form-radio" v-model="form.address" label="2">线下活动</el-radio>
+            </div>
+            <div class="edit-address clearfix">
+              <el-select class="fl address-select" v-model="form.address_data.city" filterable placeholder="选择城市">
+                <el-option
+                  v-for="item in selectOptions.city"
+                  :key="item"
+                  :label="item"
+                  :value="item">
+                </el-option>
+              </el-select>
+              <el-select class="fl address-select" v-model="form.address_data.district" filterable placeholder="选择区/县">
+                <el-option
+                  v-for="item in selectOptions.district[form.address_data.city] || []"
+                  :key="item"
+                  :label="item"
+                  :value="item">
+                </el-option>
+              </el-select>
+              <el-amap class="amap-container" vid="ac-location" :center="amap_data.center" :zoom="amap_data.zoom" :map-manager="amap_data.manager" :plugin="amap_data.plugin"></el-amap>
+            </div>
           </div>
         </div>
       </div>
@@ -108,11 +139,27 @@
 import Vue from 'vue'
 import TopNav from '@/components/TopNav'
 import Us from '@/components/Us'
-import { Upload, DatePicker, Button, Radio } from 'element-ui'
+import { Upload, DatePicker, Button, Radio, Select, Option } from 'element-ui'
+import VueAMap from 'vue-amap'
+import { lazyAMapApiLoaderInstance } from 'vue-amap'
+Vue.use(VueAMap)
 Vue.use(Upload)
 Vue.use(DatePicker)
 Vue.use(Button)
 Vue.use(Radio)
+Vue.use(Select)
+Vue.use(Option)
+// 初始化vue-amap
+let amapManager = VueAMap.initAMapApiLoader({
+  // 高德的key
+  key: 'ba6c996137985103dfcccd5ac7457ccb',
+  // 插件集合
+  plugin: ['ToolBar', 'Geolocation', 'Autocomplete', 'PlaceSearch', 'Scale', 'OverView', 'MapType', 'PolyEditor', 'CircleEditor'],
+  // ui版本号
+  uiVersion: '1.0.11',
+  // 高德 sdk 版本，默认为 1.4.4
+  v: '1.4.4'
+})
 export default {
   data () {
     return {
@@ -151,7 +198,70 @@ export default {
             let target = start || now
             return currentDate.getTime() < target.getTime()
           }
+        },
+        deadline: {
+          disabledDate: (currentDate) => {
+            let start = this.form.activity_time.start
+            let end = this.form.activity_time.end
+            let now = new Date()
+            now.setHours(0)
+            now.setMinutes(0)
+            now.setSeconds(0)
+            now.setMilliseconds(0)
+            start = start || now
+            if (start && end) {
+              return (currentDate.getTime() <= start || currentDate.getTime() >= end)
+            } else if (!start && end) {
+              return currentDate.getTime() >= end
+            } else if (start && !end) {
+              return currentDate.getTime() <= start
+            } else {
+              return false
+            }
+          }
         }
+      },
+      selectOptions: {
+        city: ['海口', '三亚', '儋州', '文昌', '澄迈'],
+        district: {
+          '海口': ['龙华区', '秀英区', '美兰区', '琼山区'],
+          '三亚': ['区域1', '区域2'],
+          '儋州': ['区域一', '区域二', '区域三'],
+          '文昌': ['区域一', '区域二', '区域三'],
+          '澄迈': ['区域一', '区域二', '区域三']
+        }
+      },
+      amap_data: {
+        manager: amapManager,
+        plugin: [{
+          pName: 'ToolBar',
+          events: {
+            init(instance) {
+              console.log('ToolBar', instance);
+            }
+          }
+        },
+        {
+          pName: 'Geolocation',
+          events: {
+            init(o) {
+              // o是高德地图定位插件实例
+              o.getCurrentPosition((status, result) => {
+                console.log('getCurrentPosition', status, result)
+                if (result && result.position) {
+                  self.lng = result.position.lng
+                  self.lat = result.position.lat
+                  self.center = [self.lng, self.lat]
+                  self.loaded = true
+                  self.$nextTick();
+                }
+              })
+            }
+          }
+        }],
+        // 海南省政府位置
+        center: [110.348828,20.018737],
+        zoom: 12
       },
       form: {
         name: '',
@@ -164,7 +274,13 @@ export default {
           end: ''
         },
         deadline: '1',
-        deadline_date: ''
+        deadline_date: '',
+        address: '2',
+        address_data: {
+          city: '',
+          district: '',
+          location: ''
+        }
       }
     }
   },
@@ -204,6 +320,11 @@ export default {
     changeStart (date) {
       let msStart = date.getTime()
       let msEnd = this.form.activity_time.end ? this.form.activity_time.end.getTime() : 0
+      let msDeadline = this.form.deadline_date ? this.form.deadline_date.getTime() : 0
+      if (msStart >= msDeadline) {
+        this.$toast('开始时间大于等于截止时间，已重置截止时间！', 3000)
+        this.form.deadline_date = ''
+      }
       if (msStart >= msEnd && msEnd) {
         this.$toast('开始时间大于结束时间，已重置结束时间！', 3000)
         this.form.activity_time.end = ''
@@ -212,13 +333,33 @@ export default {
     changeEnd (date) {
       let msStart = this.form.activity_time.start ? this.form.activity_time.start.getTime() : 0
       let msEnd = date.getTime()
+      let msDeadline = this.form.deadline_date ? this.form.deadline_date.getTime() : 0
       if (msEnd <= msStart) {
         this.$toast('结束时间必须大于开始时间！', 3000)
         this.form.activity_time.end = ''
+        return false
+      }
+      if (msEnd < msDeadline) {
+        this.$toast('结束时间小于截止时间，已重置截止时间', 3000)
+        this.form.deadline_date = ''
       }
     },
-    changeDeadline (date) {
-
+    changeDeadlineDate (date) {
+      let msStart = this.form.activity_time.start ? this.form.activity_time.start.getTime() : 0
+      let msEnd = this.form.activity_time.end ? this.form.activity_time.end.getTime() : 0
+      let msDeadline = date.getTime()
+      if ((msEnd && msDeadline >= msEnd) || (msStart && msDeadline <= msStart)) {
+        this.$toast('截止时间必须大于开始时间，且小于结束时间！', 3000)
+        this.form.deadline_date = ''
+      }
+    },
+    changeDeadline (label) {
+      if (label === '2') {
+        this.$refs['deadlinePicker'].focus()
+      }
+    },
+    changeAddress (label) {
+      console.log('changeAddress')
     }
   },
   mounted () {
@@ -455,5 +596,26 @@ export default {
 <style>
 .el-date-table__row td:first-child, .el-date-table__row td:last-child{
   color: #FF2B2B;
+}
+.deadline-left{
+  width: 427px;
+}
+.form-radio{
+  line-height: 40px;
+}
+.edit-address{
+  clear: both;
+}
+.address-select{
+  margin-right: 16px;
+}
+.address-select /deep/ .el-input__inner{
+  border-radius: 0;
+}
+/* 地图 */
+.amap-container{
+  width: 793px;
+  height: 300px !important;
+  clear: both;
 }
 </style>
