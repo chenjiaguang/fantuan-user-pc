@@ -122,7 +122,7 @@ export default {
       overview: {
         account: {
           id: null,
-          name: '白日做梦'
+          name: '白日s做梦'
         },
         circle: {
           id: null,
