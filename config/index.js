@@ -10,7 +10,11 @@ module.exports = {
     // Paths
     assetsSubDirectory: 'cwebassets-pc',
     assetsPublicPath: '/user-pc/',
-    proxyTable: {},
+    proxyTable: [{
+      context: ['/jv',],
+      target: 'http://fanttest.fantuanlife.com',
+      changeOrigin: true
+    }],
 
     // Various Dev Server settings
     host: '0.0.0.0', // can be overwritten by process.env.HOST
