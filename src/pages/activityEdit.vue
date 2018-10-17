@@ -56,11 +56,12 @@
               :clearable="false"
               v-model="form.activity_time.start"
               type="datetime"
-              placeholder="选择日期时间"
-              default-time="12:00:00"
-              :picker-options="pickerOptions.start">
+              placeholder="请选择开始时间"
+              default-time="00:00:00"
+              :picker-options="pickerOptions.start"
+              @change="changeStart">
             </el-date-picker>
-            <div class="fl">至</div>
+            <div class="fl center-sign">至</div>
             <el-date-picker
               class="fl date-picker"
               prefix-icon="iconfont icon-date"
@@ -68,9 +69,32 @@
               :clearable="false"
               v-model="form.activity_time.end"
               type="datetime"
-              placeholder="选择日期时间"
-              default-time="12:00:00"
-              :picker-options="pickerOptions.end">
+              placeholder="请选择结束时间"
+              default-time="00:00:00"
+              :picker-options="pickerOptions.end"
+              @change="changeEnd">
+            </el-date-picker>
+          </div>
+        </div>
+        <!-- 截止时间 -->
+        <div class="form-item clearfix">
+          <div class="form-left fl">截止时间</div>
+          <div class="form-right fl clearfix">
+            <el-radio class="fl" v-model="form.deadline" label="1">活动结束前均可报名</el-radio>
+            <el-radio class="fl" v-model="form.deadline" label="2">设置报名截止时间</el-radio>
+            <div class="fl center-sign">至</div>
+            <el-date-picker
+              class="fl date-picker"
+              prefix-icon="iconfont icon-date"
+              :disabled="form.deadline === '1'"
+              :editable="false"
+              :clearable="false"
+              v-model="form.deadline_date"
+              type="datetime"
+              placeholder="请选择截止时间"
+              default-time="00:00:00"
+              :picker-options="pickerOptions.end"
+              @change="changeEnd">
             </el-date-picker>
           </div>
         </div>
@@ -84,9 +108,11 @@
 import Vue from 'vue'
 import TopNav from '@/components/TopNav'
 import Us from '@/components/Us'
-import { Upload, DatePicker } from 'element-ui'
+import { Upload, DatePicker, Button, Radio } from 'element-ui'
 Vue.use(Upload)
 Vue.use(DatePicker)
+Vue.use(Button)
+Vue.use(Radio)
 export default {
   data () {
     return {
@@ -136,7 +162,9 @@ export default {
         activity_time: {
           start: '',
           end: ''
-        }
+        },
+        deadline: '1',
+        deadline_date: ''
       }
     }
   },
@@ -172,6 +200,25 @@ export default {
         eve.stopPropagation()
         return false
       }
+    },
+    changeStart (date) {
+      let msStart = date.getTime()
+      let msEnd = this.form.activity_time.end ? this.form.activity_time.end.getTime() : 0
+      if (msStart >= msEnd && msEnd) {
+        this.$toast('开始时间大于结束时间，已重置结束时间！', 3000)
+        this.form.activity_time.end = ''
+      }
+    },
+    changeEnd (date) {
+      let msStart = this.form.activity_time.start ? this.form.activity_time.start.getTime() : 0
+      let msEnd = date.getTime()
+      if (msEnd <= msStart) {
+        this.$toast('结束时间必须大于开始时间！', 3000)
+        this.form.activity_time.end = ''
+      }
+    },
+    changeDeadline (date) {
+
     }
   },
   mounted () {
@@ -293,7 +340,7 @@ export default {
   width: 793px;
   height: 40px;
   box-sizing: border-box;
-  border: 1px solid #9CA3B4;
+  border: 1px solid #D2D2D2;
   font-size: 16px;
   text-indent: 8px;
 }
@@ -378,8 +425,15 @@ export default {
   color: #999;
 }
 
+.date-picker{
+  width: 366px;
+  height: 40px;
+  cursor: pointer;
+}
 .date-picker /deep/ .el-input__inner{
   padding: 0 40px 0 10px;
+  border-color: #D2D2D2;
+  border-radius: 0;
 }
 .date-picker /deep/ .icon-date{
   font-size: 24px;
@@ -388,5 +442,18 @@ export default {
 .date-picker /deep/ .el-input__prefix{
   right: 8px;
   left: unset;
+}
+.center-sign{
+  width: 61px;
+  text-align: center;
+  font-size: 16px;
+  color: #333;
+  line-height: 40px;
+}
+</style>
+
+<style>
+.el-date-table__row td:first-child, .el-date-table__row td:last-child{
+  color: #FF2B2B;
 }
 </style>
