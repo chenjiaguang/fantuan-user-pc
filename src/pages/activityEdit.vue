@@ -16,14 +16,14 @@
         <div class="setting-header" :style="{backgroundImage: 'url(' + $assetsPublicPath + '/cwebassets-pc/image/head_bg.png)'}">基本信息设置</div>
         <!-- 主题 -->
         <div class="form-item clearfix">
-          <div class="form-left fl">活动主题</div>
+          <div class="form-left fl required">活动主题</div>
           <div class="form-right fl">
             <input class="form-input form-name" v-model="form.name" placeholder="请输入活动主题，最多30个字" />
           </div>
         </div>
         <!-- 活动封面 -->
         <div class="form-item clearfix">
-          <div class="form-left fl">活动封面</div>
+          <div class="form-left fl required">活动封面</div>
           <div class="form-right fl clearfix">
             <el-upload
               class="avatar-uploader fl"
@@ -47,7 +47,7 @@
         </div>
         <!-- 活动时间 -->
         <div class="form-item clearfix">
-          <div class="form-left fl">活动时间</div>
+          <div class="form-left fl required">活动时间</div>
           <div class="form-right fl clearfix">
             <el-date-picker
               class="fl date-picker"
@@ -78,7 +78,7 @@
         </div>
         <!-- 截止时间 -->
         <div class="form-item clearfix">
-          <div class="form-left fl">截止时间</div>
+          <div class="form-left fl required">截止时间</div>
           <div class="form-right fl clearfix">
             <div class="deadline-left fl clearfix">
               <el-radio @change="changeDeadline" class="fl form-radio" v-model="form.deadline" label="1">活动结束前均可报名</el-radio>
@@ -100,32 +100,65 @@
             </el-date-picker>
           </div>
         </div>
-        <!-- 活动地点 -->
-        <div class="form-item clearfix">
-          <div class="form-left fl">活动地点</div>
+        <!-- 活动类型 -->
+        <div class="form-item clearfix" style="margin-bottom: 15px;">
+          <div class="form-left fl required">活动地点</div>
+          <div class="form-right fl">
+            <el-radio @change="changeAddress" class="fl form-radio" v-model="form.address" label="1">线上活动</el-radio>
+            <el-radio @change="changeAddress" class="fl form-radio" v-model="form.address" label="2">线下活动</el-radio>
+          </div>
+        </div>
+        <!-- 活动地图 -->
+        <div class="form-item clearfix" style="margin-top:15px;">
+          <div class="form-left fl" style="color:transparent">活动地图</div>
           <div class="form-right fl clearfix">
-            <div class="deadline-left fl clearfix">
-              <el-radio @change="changeAddress" class="fl form-radio" v-model="form.address" label="1">线上活动</el-radio>
-              <el-radio @change="changeAddress" class="fl form-radio" v-model="form.address" label="2">线下活动</el-radio>
+            <el-select class="fl address-select" style="display:none" :disabled="true" v-model="form.address_data.province" placeholder="选择省" @change="provinceChange">
+              <el-option
+                v-for="item in selectOptions.province_list"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name">
+              </el-option>
+            </el-select>
+            <el-select class="fl address-select" v-model="form.address_data.city" placeholder="选择城市" @change="cityChange" @focus="$forceUpdate()">
+              <el-option
+                v-for="item in selectOptions.city_list[form.address_data.province] || []"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name">
+              </el-option>
+            </el-select>
+            <el-select class="fl address-select" v-model="form.address_data.district" placeholder="选择区/县">
+              <el-option
+                v-for="item in selectOptions.district_list || []"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name">
+              </el-option>
+            </el-select>
+            <div class="location-search-box fl clearfix">
+              <el-select
+                class="location-search-select fl"
+                value-key="location"
+                v-model="selectOptions.location"
+                filterable
+                remote
+                placeholder="请输入详细地址，例如金贸中路1号店"
+                :remote-method="remoteMethod"
+                :loading="selectOptions.location_loading">
+                <el-option
+                  v-for="item in selectOptions.location_options"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.location">
+                </el-option>
+              </el-select>
+              <div class="location-search-btn fl" @click="resetMarker" :class="{disabled: !selectOptions.location}"><i class="iconfont icon-location" style="font-size:18px;margin-right:5px;vertical-align:middle;"></i><span style="vertical-align:middle">标记位置</span></div>
             </div>
-            <div class="edit-address clearfix">
-              <el-select class="fl address-select" v-model="form.address_data.city" filterable placeholder="选择城市">
-                <el-option
-                  v-for="item in selectOptions.city"
-                  :key="item"
-                  :label="item"
-                  :value="item">
-                </el-option>
-              </el-select>
-              <el-select class="fl address-select" v-model="form.address_data.district" filterable placeholder="选择区/县">
-                <el-option
-                  v-for="item in selectOptions.district[form.address_data.city] || []"
-                  :key="item"
-                  :label="item"
-                  :value="item">
-                </el-option>
-              </el-select>
-              <el-amap class="amap-container" vid="ac-location" :center="amap_data.center" :zoom="amap_data.zoom" :map-manager="amap_data.manager" :plugin="amap_data.plugin"></el-amap>
+            <div class="amap-instance-container">
+              <el-amap vid="ac-location" :center="amap_data.center" :zoom="amap_data.zoom" :map-manager="amap_data.manager" :plugin="amap_data.plugin">
+                <el-amap-marker vid="location-marker" :position="location_position.point" :topWhenClick="true" :clickable="true" :draggable="true" :events="location_position.events"></el-amap-marker>
+              </el-amap>
             </div>
           </div>
         </div>
@@ -141,7 +174,6 @@ import TopNav from '@/components/TopNav'
 import Us from '@/components/Us'
 import { Upload, DatePicker, Button, Radio, Select, Option } from 'element-ui'
 import VueAMap from 'vue-amap'
-import { lazyAMapApiLoaderInstance } from 'vue-amap'
 Vue.use(VueAMap)
 Vue.use(Upload)
 Vue.use(DatePicker)
@@ -154,14 +186,19 @@ let amapManager = VueAMap.initAMapApiLoader({
   // 高德的key
   key: 'ba6c996137985103dfcccd5ac7457ccb',
   // 插件集合
-  plugin: ['ToolBar', 'Geolocation', 'Autocomplete', 'PlaceSearch', 'Scale', 'OverView', 'MapType', 'PolyEditor', 'CircleEditor'],
+  plugin: ['ToolBar', 'Geolocation', 'PlaceSearch', 'Geocoder', 'DistrictSearch', 'Autocomplete', 'PlaceSearch', 'Scale', 'OverView', 'MapType', 'PolyEditor', 'CircleEditor'],
   // ui版本号
   uiVersion: '1.0.11',
   // 高德 sdk 版本，默认为 1.4.4
   v: '1.4.4'
 })
+// let placesearch = new VueAMap.PlaceSearch({
+//   city: '海南', // 兴趣点城市
+//   citylimit: true // 是否强制限制在设置的城市内搜索
+// })
 export default {
   data () {
+    let self = this
     return {
       value: '',
       canPreview: false,
@@ -222,45 +259,129 @@ export default {
         }
       },
       selectOptions: {
-        city: ['海口', '三亚', '儋州', '文昌', '澄迈'],
-        district: {
-          '海口': ['龙华区', '秀英区', '美兰区', '琼山区'],
-          '三亚': ['区域1', '区域2'],
-          '儋州': ['区域一', '区域二', '区域三'],
-          '文昌': ['区域一', '区域二', '区域三'],
-          '澄迈': ['区域一', '区域二', '区域三']
+        province_list: [],
+        city_list: {},
+        district_list: [],
+        location: null,
+        location_options: [],
+        location_loading: false
+      },
+      location_position: {
+        point: [110.348828, 20.018737],
+        events: {
+          click (e) {
+            console.log('markerPosition', [e.lnglat.lng, e.lnglat.lat])
+            if (!self.amap_data.geocoder) { // 解析插件未初始化完成
+              return false
+            }
+            self.amap_data.geocoder.getAddress([e.lnglat.lng, e.lnglat.lat], function (status, result) {
+              console.log('coder_function', status, result)
+              if (status === 'complete' && result.info === 'OK') {
+                if (result && result.regeocode) {
+                  console.log('result.regeocode.formattedAddress', result.regeocode.formattedAddress)
+                }
+              } else {
+                self.$toast('获取位置失败！')
+              }
+            })
+          },
+          dragend (e) {
+            console.log('markerPosition', [e.lnglat.lng, e.lnglat.lat])
+            if (!self.amap_data.geocoder) { // 解析插件未初始化完成
+              return false
+            }
+            self.amap_data.geocoder.getAddress([e.lnglat.lng, e.lnglat.lat], function (status, result) {
+              console.log('coder_function', status, result)
+              if (status === 'complete' && result.info === 'OK') {
+                if (result && result.regeocode) {
+                  console.log('result.regeocode.formattedAddress', result.regeocode.formattedAddress)
+                }
+              } else {
+                self.$toast('获取经纬度失败！')
+              }
+            })
+          }
         }
       },
       amap_data: {
         manager: amapManager,
+        placesearch: null,
+        geocoder: null,
+        districtsearch: null,
         plugin: [{
           pName: 'ToolBar',
           events: {
-            init(instance) {
-              console.log('ToolBar', instance);
+            init (instance) {
+              console.log('ToolBar', instance)
             }
           }
         },
         {
           pName: 'Geolocation',
           events: {
-            init(o) {
+            init (o) {
               // o是高德地图定位插件实例
               o.getCurrentPosition((status, result) => {
                 console.log('getCurrentPosition', status, result)
                 if (result && result.position) {
-                  self.lng = result.position.lng
-                  self.lat = result.position.lat
-                  self.center = [self.lng, self.lat]
-                  self.loaded = true
-                  self.$nextTick();
+                  self.amap_data.center = [result.position.lng, result.position.lat]
+                  self.location_position.point = [result.position.lng, result.position.lat]
+                  // self.loaded = true
+                  // self.$nextTick()
+                }
+              })
+            }
+          }
+        },
+        {
+          pName: 'PlaceSearch',
+          pageSize: 50,
+          events: {
+            init (placesearch) {
+              console.log('placesearch', placesearch)
+              self.amap_data.placesearch = placesearch
+            }
+          }
+        },
+        {
+          pName: 'Geocoder',
+          events: {
+            init (geocoder) {
+              console.log('geocoder', geocoder)
+              self.amap_data.geocoder = geocoder
+            }
+          }
+        },
+        {
+          pName: 'DistrictSearch',
+          level: 'country',
+          subdistrict: 1,
+          events: {
+            init (districtsearch) {
+              self.amap_data.districtsearch = districtsearch
+              self.amap_data.districtsearch.search('中国', function (status, result) {
+                if (result && result.info === 'OK') {
+                  self.selectOptions.province_list = result.districtList[0].districtList
+                  // 固定设置为海南省
+                  self.amap_data.districtsearch.setLevel('province')
+                  self.selectOptions.province_list.forEach(item => {
+                    self.amap_data.districtsearch.search(item.name, function (status, result) {
+                      if (result && result.info === 'OK') {
+                        console.log(item.name, result)
+                        self.selectOptions.city_list[item.name] = result.districtList[0].districtList
+                      }
+                    })
+                  })
+                  setTimeout(() => {
+                    console.log('citys', self.selectOptions.city_list[self.form.address_data.province])
+                  }, 1000)
                 }
               })
             }
           }
         }],
         // 海南省政府位置
-        center: [110.348828,20.018737],
+        center: [110.348828, 20.018737],
         zoom: 12
       },
       form: {
@@ -277,7 +398,8 @@ export default {
         deadline_date: '',
         address: '2',
         address_data: {
-          city: '',
+          province: '海南省',
+          city: '海口市',
           district: '',
           location: ''
         }
@@ -360,6 +482,62 @@ export default {
     },
     changeAddress (label) {
       console.log('changeAddress')
+    },
+    locationMarkerChange (e) {
+      console.log('locationMarkerChange', e)
+    },
+    remoteMethod (query) {
+      console.log('remoteMethod', query)
+      if (!this.amap_data.placesearch || !query) { // 未初始化过搜索服务 或 没有需要搜索的文字
+        return false
+      }
+      this.amap_data.placesearch.setCity('海南省')
+      this.selectOptions.location_loading = true
+      this.amap_data.placesearch.search(query, (status, result) => {
+        this.selectOptions.location_loading = false
+        // 查询成功时，result即对应匹配的POI信息
+        console.log('placesearch', status, result)
+        if (result && result.info === 'OK' && result.poiList && result.poiList.count) {
+          this.selectOptions.location_options = result.poiList.pois
+        }
+      })
+      // this.amap_data.geocoder.setCity('海口')
+      // this.amap_data.geocoder.getLocation(query, (status, result) => {
+      //   if (status === 'complete' && result.info === 'OK') {
+      //     // result中对应详细地理坐标信息
+      //     console.log('remoteMethodSuccess', status, result)
+      //   } else {
+      //     // 未获取到对应的信息
+      //     // this.$toast('获取位置失败！')
+      //   }
+      // })
+    },
+    resetMarker () {
+      if (!this.selectOptions.location) { // 没有选中的地址
+        return false
+      }
+      const lnglat = [this.selectOptions.location.lng, this.selectOptions.location.lat]
+      this.location_position.point = lnglat
+      this.amap_data.center = lnglat
+    },
+    provinceChange (province) {
+      console.log('provinceChange', province)
+      this.form.address_data.city = ''
+      this.form.address_data.district = ''
+    },
+    cityChange (city) {
+      console.log('cityChange', city)
+      this.form.address_data.district = ''
+      if (city) {
+        this.amap_data.districtsearch.setLevel('city')
+        this.amap_data.districtsearch.search(city, (status, result) => {
+          if (result && result.info === 'OK') {
+            this.selectOptions.district_list = result.districtList[0].districtList
+          }
+        })
+      } else {
+        this.selectOptions.district_list = []
+      }
     }
   },
   mounted () {
@@ -465,7 +643,7 @@ export default {
   text-align: right;
   margin-right: 18px;
 }
-.form-left:before{
+.form-left.required:before{
   content: "*";
   font-size: 16px;
   color: #FF2323;
@@ -603,19 +781,59 @@ export default {
 .form-radio{
   line-height: 40px;
 }
-.edit-address{
+/* .edit-address{
   clear: both;
-}
+} */
 .address-select{
+  width: 175px;
   margin-right: 16px;
 }
 .address-select /deep/ .el-input__inner{
   border-radius: 0;
+  padding-left: 10px;
+}
+.location-search-box{
+  width: 409px;
+  border: 1px solid #D2D2D2;
+  position: relative;
+}
+.location-search-box /deep/ .el-input__inner{
+  height: 38px;
+  line-height: 38px;
+  padding-left: 10px;
+}
+.location-search-select /deep/ .el-input__inner{
+  border: none;
+  border-radius: 0;
+  width: 306px;
+  cursor: text;
+}
+.location-search-select /deep/ .el-select__caret{
+  cursor: text !important;
+}
+.location-search-btn{
+  width: 90px;
+  height: 28px;
+  line-height: 26px;
+  font-size: 12px;
+  color: #fff;
+  border-radius: 4px;
+  text-align: center;
+  background: linear-gradient(90deg, #009AFF, #00C0FF);
+  cursor: pointer;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+.location-search-btn.disabled{
+  background: #A6A6A6;
 }
 /* 地图 */
-.amap-container{
+.amap-instance-container{
   width: 793px;
-  height: 300px !important;
+  height: 350px !important;
   clear: both;
+  padding-top: 15px;
+  overflow: hidden;
 }
 </style>
