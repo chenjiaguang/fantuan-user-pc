@@ -8,7 +8,7 @@ config.toolbar = [
 // config.language = 'en'
 config.height = 1000
 config.allowedContent = true
-config.extraPlugins = ['fantuanimageuploader', 'uploadimage']
+config.extraPlugins = ['fantuanimageuploader']
 config.imageUploadUrl = 'http://fantuantest-img.oss-cn-beijing.aliyuncs.com'
 // config.extraAllowedContent = '*(*)' // 允许class属性
 

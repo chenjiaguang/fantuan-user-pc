@@ -1,7 +1,6 @@
 <template>
   <div>
-    <FantUpload>
-    </FantUpload>
+    <input type="file" id="btn_file" style="display:none" @change="change">
     <div ref="editor"></div>
   </div>
 </template>
@@ -25,6 +24,7 @@ export default {
     }
   },
   mounted () {
+    window.fantuanUpload = this.upload.bind(this)
     this.create()
   },
   methods: {
@@ -40,28 +40,30 @@ export default {
       })
       editor.on('fileUploadRequest', async evt => {
         evt.stop()
-        // console.log('evt', evt)
         let file = evt.data.requestData.upload.file
         let md5 = await uploadUtil.getMd5(file)
-        await this.$ajax('/jv/api/sts/H5', {data: {
-          md5: md5
-        }}).then(res => {
-          let formData = new FormData()
-          let xhr = evt.data.fileLoader.xhr
-          formData.append('key', res.dir)
-          formData.append('policy', res.policy)
-          formData.append('OSSAccessKeyId', res.accessid)
-          formData.append('callback', res.callback)
-          formData.append('signature', res.signature)
-          formData.append('success_action_status', '200')
-          formData.append('file', file, evt.data.requestData.upload.name)
-          xhr.open('POST', res.host, true)
-          xhr.send(formData)
-          // evt.stop()
-        }).catch(err => {
-          console.log(err)
+        await this.$ajax('/jv/api/sts/H5', {
+          data: {
+            md5: md5
+          }
         })
-        console.log('end')
+          .then(res => {
+            let formData = new FormData()
+            let xhr = evt.data.fileLoader.xhr
+            formData.append('key', res.dir)
+            formData.append('policy', res.policy)
+            formData.append('OSSAccessKeyId', res.accessid)
+            formData.append('callback', res.callback)
+            formData.append('signature', res.signature)
+            formData.append('success_action_status', '200')
+            formData.append('file', file, evt.data.requestData.upload.name)
+            xhr.open('POST', res.host, true)
+            xhr.send(formData)
+            // evt.stop()
+          })
+          .catch(err => {
+            console.log(err)
+          })
       })
       editor.on('fileUploadResponse', function (evt) {
         evt.stop()
@@ -71,13 +73,22 @@ export default {
         var response = JSON.parse(xhr.responseText)
 
         if (response.msg) {
-        // An error occurred during upload.
+          // An error occurred during upload.
           data.message = response.msg
           evt.cancel()
         } else {
           data.url = response.data.url
         }
       })
+    },
+    upload () {
+      document.getElementById('btn_file').click()
+    },
+    async change (e) {
+      let datasrc = await uploadUtil.getDataSrc(
+        document.getElementById('btn_file').files[0]
+      )
+      editor.insertHtml(`<img src="${datasrc}">`)
     }
   }
 }

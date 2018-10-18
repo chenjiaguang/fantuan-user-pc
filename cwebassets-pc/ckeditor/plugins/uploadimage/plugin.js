@@ -89,7 +89,7 @@
 
 			// Handle images which are not available in the dataTransfer.
 			// This means that we need to read them from the <img src="data:..."> elements.
-			editor.on( 'paste', function( evt ) {
+			let func=function( evt ) {
 				// For performance reason do not parse data if it does not contain img tag and data attribute.
 				if ( !evt.data.dataValue.match( /<img[\s\S]+data:/i ) ) {
 					return;
@@ -136,7 +136,9 @@
 				}
 
 				data.dataValue = temp.getHtml();
-			} );
+			}
+			editor.on( 'paste', func );
+			editor.on( 'insertHtml', func );
 		}
 	} );
 

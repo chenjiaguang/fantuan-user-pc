@@ -32,5 +32,17 @@ export default {
 
       loadNext()
     })
+  },
+  getDataSrc (file) {
+    return new Promise(function (resolve, reject) {
+      let fileReader = new FileReader()
+      fileReader.onload = function (e) {
+        resolve(e.target.result)
+      }
+      fileReader.onerror = function (e) {
+        reject(e)
+      }
+      fileReader.readAsDataURL(file)
+    })
   }
 }
