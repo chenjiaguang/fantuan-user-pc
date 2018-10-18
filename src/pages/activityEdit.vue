@@ -6,13 +6,13 @@
         <div class="account fl">账号：<span>{{overview.account.name}}</span></div>
         <div class="circle fl">发布于“{{overview.account.name}}”群组</div>
       </div>
+      <div class="sava-tip-box">
+        <div class="save-tip-content">ctrl+s可以直接保存当前填写的内容</div>
+        <div class="box1"></div>
+        <div class="box2"></div>
+        <div class="box3"></div>
+      </div>
       <div class="basic-setting">
-        <div class="sava-tip-box">
-          <div class="save-tip-content">ctrl+s可以直接保存当前填写的内容</div>
-          <div class="box1"></div>
-          <div class="box2"></div>
-          <div class="box3"></div>
-        </div>
         <div class="setting-header" :style="{backgroundImage: 'url(' + $assetsPublicPath + '/cwebassets-pc/image/head_bg.png)'}">基本信息设置</div>
         <!-- 主题 -->
         <div class="form-item clearfix">
@@ -109,37 +109,37 @@
           </div>
         </div>
         <!-- 活动地图 -->
-        <div class="form-item clearfix" style="margin-top:15px;">
+        <div v-if="form.address.toString() === '2'" class="form-item clearfix" style="margin-top:15px;">
           <div class="form-left fl" style="color:transparent">活动地图</div>
           <div class="form-right fl clearfix">
-            <el-select class="fl address-select" style="display:none" :disabled="true" v-model="form.address_data.province" placeholder="选择省" @change="provinceChange">
+            <el-select class="fl address-select" value-key="name" style="display:none" disabled v-model="form.address_data.province" placeholder="选择省" @change="provinceChange">
               <el-option
                 v-for="item in selectOptions.province_list"
                 :key="item.name"
                 :label="item.name"
-                :value="item.name">
+                :value="item">
               </el-option>
             </el-select>
-            <el-select class="fl address-select" v-model="form.address_data.city" placeholder="选择城市" @change="cityChange" @focus="$forceUpdate()">
+            <el-select class="fl address-select" value-key="name" v-model="form.address_data.city" placeholder="选择城市" @change="cityChange">
               <el-option
-                v-for="item in selectOptions.city_list[form.address_data.province] || []"
+                v-for="item in selectOptions.city_list[form.address_data.province.name]"
                 :key="item.name"
                 :label="item.name"
-                :value="item.name">
+                :value="item">
               </el-option>
             </el-select>
-            <el-select class="fl address-select" v-model="form.address_data.district" placeholder="选择区/县">
+            <el-select class="fl address-select" value-key="name" v-model="form.address_data.district" placeholder="选择区/县">
               <el-option
-                v-for="item in selectOptions.district_list || []"
+                v-for="item in selectOptions.district_list"
                 :key="item.name"
                 :label="item.name"
-                :value="item.name">
+                :value="item">
               </el-option>
             </el-select>
             <div class="location-search-box fl clearfix">
               <el-select
                 class="location-search-select fl"
-                value-key="location"
+                value-key="id"
                 v-model="selectOptions.location"
                 filterable
                 remote
@@ -150,7 +150,7 @@
                   v-for="item in selectOptions.location_options"
                   :key="item.id"
                   :label="item.name"
-                  :value="item.location">
+                  :value="item">
                 </el-option>
               </el-select>
               <div class="location-search-btn fl" @click="resetMarker" :class="{disabled: !selectOptions.location}"><i class="iconfont icon-location" style="font-size:18px;margin-right:5px;vertical-align:middle;"></i><span style="vertical-align:middle">标记位置</span></div>
@@ -160,6 +160,41 @@
                 <el-amap-marker vid="location-marker" :position="location_position.point" :topWhenClick="true" :clickable="true" :draggable="true" :events="location_position.events"></el-amap-marker>
               </el-amap>
             </div>
+          </div>
+        </div>
+         <!-- 活动详情 -->
+        <div class="form-item clearfix" style="margin-bottom: 15px;">
+          <div class="form-left fl required">活动详情</div>
+          <div class="form-right fl">
+            <div style="width:793px;height:400px;background:#999;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="fee-setting">
+        <div class="setting-header" :style="{backgroundImage: 'url(' + $assetsPublicPath + '/cwebassets-pc/image/head_bg.png)'}">费用设置</div>
+        <!-- 票种设置 -->
+        <div class="form-item clearfix">
+          <div class="form-left fl required">票种设置</div>
+          <div class="form-right fl">
+            <ul class="ticket-box">
+              <li class="ticket-header clearfix">
+                <div class="header-name fl">票种</div>
+                <div class="header-price fl">金额</div>
+                <div class="header-amount fl">总数</div>
+                <div class="header-btn fl">操作</div>
+              </li>
+              <li class="ticket-item clearfix" v-if="form.ticket_data && form.ticket_data.length > 0" v-for="item in form.ticket_data" :key="item.key">
+                <input class="ticket-name fl" placeholder="请输入票种名称，最多输入15字" v-model="item.name" :maxlength="15" />
+                <input class="ticket-price fl" placeholder="免费请填0" v-model="item.price" @keypress.stop="limitPrice" />
+                <input class="ticket-amount fl" placeholder="无限制可不填" v-model="item.amount" @keypress="limitMax" />
+                <div class="ticket-btn fl"><i @click.stop="deleteTicket(item.key)" class="iconfont icon-delete delete-ticket" :title="(form.ticket_data && form.ticket_data.length === 1) ? '至少保留一个有效票种' : ''" :class="{disabled: (form.ticket_data && form.ticket_data.length <= 1)}"></i></div>
+              </li>
+              <li v-if="form.ticket_data && (form.ticket_data.length === 0 || form.ticket_data.length < 20)" class="ticket-bottom-btn">
+                <div @click.stop="addTicket" @mousedown.stop="addDown" @mouseout="removeDown" @mouseup="removeDown" class="add-ticket">
+                  <div class="inner"><i class="iconfont icon-jiahao"></i>添加票种</div>
+                </div>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
@@ -365,16 +400,26 @@ export default {
                   // 固定设置为海南省
                   self.amap_data.districtsearch.setLevel('province')
                   self.selectOptions.province_list.forEach(item => {
+                    if (item.name === '海南省') {
+                      // 将海南省设置为默认选项
+                      self.form.address_data.province = item
+                    }
                     self.amap_data.districtsearch.search(item.name, function (status, result) {
                       if (result && result.info === 'OK') {
                         console.log(item.name, result)
                         self.selectOptions.city_list[item.name] = result.districtList[0].districtList
+                        if (item.name === '海南省') {
+                          result.districtList[0].districtList.forEach(item => {
+                            if (item.name === '海口市') {
+                              // 将海口市设置为默认选项
+                              self.form.address_data.city = item
+                              self.cityChange(item)
+                            }
+                          })
+                        }
                       }
                     })
                   })
-                  setTimeout(() => {
-                    console.log('citys', self.selectOptions.city_list[self.form.address_data.province])
-                  }, 1000)
                 }
               })
             }
@@ -398,16 +443,25 @@ export default {
         deadline_date: '',
         address: '2',
         address_data: {
-          province: '海南省',
-          city: '海口市',
-          district: '',
+          province: {},
+          city: {},
+          district: {},
           location: ''
-        }
+        },
+        ticket_data: []
       }
     }
   },
   components: { TopNav, Us },
   methods: {
+    addDown (e) {
+      let eve = e || window.event
+      eve.currentTarget.classList.add('down')
+    },
+    removeDown (e) {
+      let eve = e || window.event
+      eve.currentTarget.classList.remove('down')
+    },
     preview () {
       console.log('preview11')
     },
@@ -491,12 +545,13 @@ export default {
       if (!this.amap_data.placesearch || !query) { // 未初始化过搜索服务 或 没有需要搜索的文字
         return false
       }
-      this.amap_data.placesearch.setCity('海南省')
+      let {province, city, district} = this.form.address_data
+      let adcode = district.adcode || city.adcode || province.adcode
+      this.amap_data.placesearch.setCity(adcode)
       this.selectOptions.location_loading = true
       this.amap_data.placesearch.search(query, (status, result) => {
         this.selectOptions.location_loading = false
         // 查询成功时，result即对应匹配的POI信息
-        console.log('placesearch', status, result)
         if (result && result.info === 'OK' && result.poiList && result.poiList.count) {
           this.selectOptions.location_options = result.poiList.pois
         }
@@ -516,32 +571,71 @@ export default {
       if (!this.selectOptions.location) { // 没有选中的地址
         return false
       }
-      const lnglat = [this.selectOptions.location.lng, this.selectOptions.location.lat]
+      const lnglat = [this.selectOptions.location.location.lng, this.selectOptions.location.location.lat]
       this.location_position.point = lnglat
       this.amap_data.center = lnglat
     },
     provinceChange (province) {
       console.log('provinceChange', province)
-      this.form.address_data.city = ''
-      this.form.address_data.district = ''
+      this.form.address_data.city = {}
+      this.form.address_data.district = {}
     },
     cityChange (city) {
       console.log('cityChange', city)
-      this.form.address_data.district = ''
+      this.form.address_data.district = {}
       if (city) {
         this.amap_data.districtsearch.setLevel('city')
-        this.amap_data.districtsearch.search(city, (status, result) => {
-          if (result && result.info === 'OK') {
+        this.amap_data.districtsearch.search(city.adcode, (status, result) => {
+          if (result && result.info === 'OK' && this.form.address_data.city.name === city.name) {
             this.selectOptions.district_list = result.districtList[0].districtList
           }
         })
       } else {
         this.selectOptions.district_list = []
       }
+    },
+    addTicket () {
+      if (this.form.ticket_data && this.form.ticket_data.length >= 20) {
+        return false
+      }
+      if (!this.form.ticket_data) {
+        this.form.ticket_data = [{name: '', price: '', amount: '', key: new Date().getTime()}]
+      } else {
+        this.form.ticket_data.push({name: '', price: '', amount: '', key: new Date().getTime()})
+      }
+      console.log('this.form.ticket_data', this.form.ticket_data)
+    },
+    deleteTicket (key) {
+      console.log('this.form.ticket_data', )
+      if (!this.form.ticket_data || (this.form.ticket_data && this.form.ticket_data.length <= 1)) { // 不存在或者只有一项时，不可删除
+        return false
+      }
+      this.form.ticket_data = this.form.ticket_data.filter(item => item.key !== key)
+    },
+    limitPrice (e) {
+      let eve = e || window.event
+      let oldVal = eve.currentTarget.value
+      let newVal = oldVal + eve.key
+      let result = /^([0]|([1-9][0-9]*)|(([0]\.\d{0,2}|[1-9][0-9]*\.\d{0,2})))$/.test(newVal)
+      if (!result) {
+        eve.returnValue = false
+      }
+    },
+    limitMax (e) {
+      let eve = e || window.event
+      let oldVal = eve.currentTarget.value
+      let newVal = oldVal + eve.key
+      let result = /^[1-9]\d*$/.test(newVal)
+      if (!result) {
+        eve.returnValue = false
+      }
     }
   },
   mounted () {
     document.addEventListener('keydown', this.saveContent, false)
+    if (!this.form.ticket_data || !this.form.ticket_data.length) { // 没有票种数据时，初始化一组空数据
+      this.form.ticket_data = [{name: '', price: '', amount: '', key: new Date().getTime()}]
+    }
   },
   beforeDestroy () {
     document.removeEventListener('keydown', this.saveContent, false)
@@ -553,6 +647,7 @@ export default {
 .page-main{
   width: 1200px;
   margin: 0 auto;
+  position: relative;
 }
 .overview{
   width: 1000px;
@@ -571,23 +666,28 @@ export default {
 .account span{
   color: #009AFF;
 }
-.basic-setting{
+.basic-setting, .fee-setting{
   width: 1000px;
   border-radius: 6px;
   background: #fff;
   margin: 10px auto 0;
   padding-top: 30px;
-  overflow: visible;
+  overflow: hidden;
   position: relative;
+}
+.fee-setting{
+  margin: 25px auto 0;
 }
 .sava-tip-box{
   width: 120px;
   font-size: 14px;
   line-height: 20px;
-  position: absolute;
-  left: 981px;
-  top: 230px;
+  position: fixed;
+  left: 50%;
+  margin-left: 481px;
+  top: 50%;
   overflow: visible;
+  z-index: 2;
 }
 .save-tip-content{
   padding: 7px 24px 7px 10px;
@@ -769,21 +869,12 @@ export default {
   color: #333;
   line-height: 40px;
 }
-</style>
-
-<style>
-.el-date-table__row td:first-child, .el-date-table__row td:last-child{
-  color: #FF2B2B;
-}
 .deadline-left{
   width: 427px;
 }
 .form-radio{
   line-height: 40px;
 }
-/* .edit-address{
-  clear: both;
-} */
 .address-select{
   width: 175px;
   margin-right: 16px;
@@ -835,5 +926,114 @@ export default {
   clear: both;
   padding-top: 15px;
   overflow: hidden;
+}
+/* 票种设置 */
+.ticket-box{
+  width: 793px;
+  border-left: 1px solid #D2D2D2;
+  border-right: 1px solid #D2D2D2;
+}
+.ticket-item{
+  border-bottom: 1px solid #D2D2D2;
+}
+.ticket-header{
+  width: 100%;
+  height: 54px;
+  line-height: 54px;
+  font-size: 16px;
+  background: #F5F5F5;
+  color: #333;
+  text-align: center;
+  border-top: 1px solid #D2D2D2;
+}
+.header-name{
+  width: 46%;
+}
+.ticket-name{
+  margin: 24px 1.26%;
+  width: 43.48%;
+  height: 38px;
+  line-height: 38px;
+  border: 1px solid #D2D2D2;
+  font-size: 16px;
+  text-align: center;
+}
+.header-price,.header-amount,.header-btn{
+  width: 18%;
+  position: relative;
+}
+.ticket-price,.ticket-amount{
+  margin: 24px 1.26%;
+  width: 15.48%;
+  height: 38px;
+  line-height: 38px;
+  border: 1px solid #D2D2D2;
+  font-size: 16px;
+  text-align: center;
+}
+.ticket-btn{
+  margin: 24px 1.26%;
+  width: 15.48%;
+  height: 38px;
+  line-height: 38px;
+  text-align: center;
+}
+.delete-ticket{
+  font-size: 24px;
+  color: #9A9A9A;
+  cursor: pointer;
+}
+.delete-ticket.disabled{
+  color: #CCCCCC;
+}
+.header-price:before,.header-amount:before,.header-btn:before{
+  content: "";
+  display: block;
+  width: 1px;
+  height: 28px;
+  background: #D2D2D2;
+  position: absolute;
+  left: 0;
+  top: 13px;
+}
+.ticket-bottom-btn{
+  padding: 13px 0 30px;
+  border-bottom: 1px solid #D2D2D2;
+}
+.add-ticket{
+  background: linear-gradient(90deg, #009AFF, #00C0FF);
+  height: 40px;
+  line-height: 38px;
+  text-align: center;
+  border-radius: 4px;
+  font-size: 16px;
+  user-select: none;
+  cursor: pointer;
+  width: 130px;
+  color: #009AFF;
+  margin: 0 auto;
+}
+.add-ticket.down {
+  background: #0189E3;
+  color: #0189E3;
+}
+.add-ticket .inner{
+  background: #fff;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  background-clip:content-box;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+.add-ticket .icon-jiahao{
+  margin-right: 7px;
+}
+</style>
+
+<style>
+.el-date-table__row td:first-child, .el-date-table__row td:last-child{
+  color: #FF2B2B;
 }
 </style>
