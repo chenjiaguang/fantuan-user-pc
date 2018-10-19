@@ -38,6 +38,11 @@ export default {
       editor.on('change', e => {
         this.$emit('input', e.editor.getData())
       })
+      editor.on('paste', e => {
+        setTimeout(() => {
+          uploadUtil.otherUrlToDataSrc(editor)
+        }, 0)
+      })
       editor.on('fileUploadRequest', async evt => {
         evt.stop()
         let file = evt.data.requestData.upload.file
@@ -85,10 +90,18 @@ export default {
       document.getElementById('btn_file').click()
     },
     async change (e) {
+      let files = document.getElementById('btn_file').files
       let datasrc = await uploadUtil.getDataSrc(
-        document.getElementById('btn_file').files[0]
+        files[files.length - 1]
       )
+      // datasrc = 'https://ss1.baidu.com/6ONXsjip0QIZ8tyhnq/it/u=1406800210,1377280389&fm=58'
       editor.insertHtml(`<img src="${datasrc}">`)
+
+      setTimeout(() => {
+        uploadUtil.dataSrcToFantUrl(editor)
+      }, 1000)
+
+      // 正在上传.cke_upload_uploading img
     }
   }
 }
