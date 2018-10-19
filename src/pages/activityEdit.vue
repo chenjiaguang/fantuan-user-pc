@@ -28,7 +28,7 @@
             <el-upload
               class="avatar-uploader fl"
               :multiple="false"
-              :action="$apiDomain + '/jv/image/upload'"
+              :action="($useHttps ? $apiDomainHttps : $apiDomain) + '/jv/image/upload'"
               :show-file-list="false"
               :on-success="handleCoverSuccess"
               :before-upload="beforeCoverUpload">
@@ -197,6 +197,47 @@
             </ul>
           </div>
         </div>
+        <!-- 限购设置 -->
+        <div class="form-item clearfix">
+          <div class="form-left fl">限购设置</div>
+          <div class="form-right fl">
+            <input class="activity-limit" placeholder="每个账号的限购数量大于0，若无限制则无需填写" v-model="form.ticket_limit" @keypress="limitMax" />
+          </div>
+        </div>
+        <!-- 费用中是否包含保险 -->
+        <div class="form-item clearfix">
+          <div class="form-left fl" style="line-height:20px">费用中是否包含保险</div>
+          <div class="form-right fl">
+            <el-radio class="fl form-radio" v-model="form.has_insurance" label="1">包含</el-radio>
+            <el-radio class="fl form-radio" v-model="form.has_insurance" label="2">不包含</el-radio>
+          </div>
+        </div>
+      </div>
+      <div class="other-setting">
+        <div class="setting-header" :style="{backgroundImage: 'url(' + $assetsPublicPath + '/cwebassets-pc/image/head_bg.png)'}">其他设置</div>
+        <!-- 报名表单设置 -->
+        <div class="form-item clearfix">
+          <div class="form-left fl required" style="line-height:20px;padding-left:15px;box-sizing:border-box;">报名表单设置</div>
+          <div class="form-right fl">
+            <el-checkbox-group class="user-form-list" v-model="form.form_list">
+              <el-checkbox label="phone" disabled>手机</el-checkbox>
+              <el-checkbox label="name">姓名</el-checkbox>
+              <el-checkbox label="gender">性别</el-checkbox>
+              <el-checkbox label="idcard">身份证</el-checkbox>
+              <el-checkbox label="wechat">微信号</el-checkbox>
+            </el-checkbox-group>
+          </div>
+        </div>
+        <!-- 咨询电话 -->
+        <div class="form-item clearfix">
+          <div class="form-left fl required">咨询电话</div>
+          <div class="form-right fl">
+            <input class="activity-limit" placeholder="请输入主办方联系电话" v-model="form.sponsor_tel" />
+          </div>
+        </div>
+      </div>
+      <div class="agreement">
+        <el-checkbox class="agreement-checkbox" v-model="form.agreement" disabled>我同意<a href="#">《范团活动发布协议》</a></el-checkbox>
       </div>
     </div>
     <us :onlyCopyright="false" />
@@ -207,7 +248,7 @@
 import Vue from 'vue'
 import TopNav from '@/components/TopNav'
 import Us from '@/components/Us'
-import { Upload, DatePicker, Button, Radio, Select, Option } from 'element-ui'
+import { Upload, DatePicker, Button, Radio, Select, Option, CheckboxGroup, Checkbox } from 'element-ui'
 import VueAMap from 'vue-amap'
 Vue.use(VueAMap)
 Vue.use(Upload)
@@ -216,6 +257,8 @@ Vue.use(Button)
 Vue.use(Radio)
 Vue.use(Select)
 Vue.use(Option)
+Vue.use(CheckboxGroup)
+Vue.use(Checkbox)
 // 初始化vue-amap
 let amapManager = VueAMap.initAMapApiLoader({
   // 高德的key
@@ -448,7 +491,12 @@ export default {
           district: {},
           location: ''
         },
-        ticket_data: []
+        ticket_data: [],
+        ticket_limit: '',
+        has_insurance: '2',
+        form_list: ['phone'],
+        sponsor_tel: '',
+        agreement: true
       }
     }
   },
@@ -606,7 +654,7 @@ export default {
       console.log('this.form.ticket_data', this.form.ticket_data)
     },
     deleteTicket (key) {
-      console.log('this.form.ticket_data', )
+      console.log('this.form.ticket_data')
       if (!this.form.ticket_data || (this.form.ticket_data && this.form.ticket_data.length <= 1)) { // 不存在或者只有一项时，不可删除
         return false
       }
@@ -649,6 +697,9 @@ export default {
   margin: 0 auto;
   position: relative;
 }
+.page-main /deep/ .el-radio__label, .page-main /deep/ .el-checkbox__label{
+  font-size: 16px;
+}
 .overview{
   width: 1000px;
   height: 50px;
@@ -666,7 +717,7 @@ export default {
 .account span{
   color: #009AFF;
 }
-.basic-setting, .fee-setting{
+.basic-setting, .fee-setting, .other-setting{
   width: 1000px;
   border-radius: 6px;
   background: #fff;
@@ -675,7 +726,7 @@ export default {
   overflow: hidden;
   position: relative;
 }
-.fee-setting{
+.fee-setting, .other-setting{
   margin: 25px auto 0;
 }
 .sava-tip-box{
@@ -1029,6 +1080,35 @@ export default {
 }
 .add-ticket .icon-jiahao{
   margin-right: 7px;
+}
+
+/* 限购设置 */
+.activity-limit{
+  width: 388px;
+  height: 38px;
+  line-height: 38px;
+  border: 1px solid #D2D2D2;
+  padding-left: 10px;
+  box-sizing: content-box;
+  font-size: 16px;
+}
+/* 报名表单设置 */
+.user-form-list{
+  line-height: 40px;
+}
+/* 勾选协议 */
+.agreement{
+  width: 1000px;
+  border-radius: 6px;
+  background: #fff;
+  margin: 15px auto 30px;
+}
+.agreement-checkbox{
+  margin-left: 65px;
+  line-height: 40px;
+}
+.agreement-checkbox a{
+  color: #009AFF;
 }
 </style>
 
