@@ -15,7 +15,6 @@ const devConfig = require('../config/dev.env')
 
 const HOST = process.env.HOST
 const PORT = process.env.PORT && Number(process.env.PORT)
-console.log('devConfig--------------------------------', devConfig, devConfig.https)
 
 const devWebpackConfig = merge(baseWebpackConfig, {
   module: {

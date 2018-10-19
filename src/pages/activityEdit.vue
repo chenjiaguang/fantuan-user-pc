@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <top-nav :buttons="true" :canPreview="false" :canPublish="false" />
+    <top-nav :buttons="true" :canPreview="false" :canPublish="true" @preview="preview" @publish="publish" />
     <div class="page-main">
       <div class="overview clearfix">
         <div class="account fl">账号：<span>{{overview.account.name}}</span></div>
@@ -28,10 +28,12 @@
             <el-upload
               class="avatar-uploader fl"
               :multiple="false"
-              :action="($useHttps ? $apiDomainHttps : $apiDomain) + '/jv/image/upload'"
+              :action="$imageUploadUrl"
+              :data="upload_data"
+              :drag="true"
               :show-file-list="false"
-              :on-success="handleCoverSuccess"
-              :before-upload="beforeCoverUpload">
+              :before-upload="beforeCoverUpload"
+              :http-request="httpRequest">
               <div class="cover-add fl" :class="{added: (form.cover.id && form.cover.url)}" :style="{backgroundImage: 'url(' + ((form.cover.id && form.cover.url) ? form.cover.url : '') + ')'}">
                 <div class="cover-btn" :class="{added: (form.cover.id && form.cover.url)}">
                   <div class="cover-btn-text">点击{{(form.cover.id && form.cover.url) ? '更换' : '添加'}}活动封面</div>
@@ -162,8 +164,8 @@
             </div>
           </div>
         </div>
-         <!-- 活动详情 -->
-        <div class="form-item clearfix" style="margin-bottom: 15px;">
+        <!-- 活动详情 -->
+        <div class="form-item clearfix">
           <div class="form-left fl required">活动详情</div>
           <div class="form-right fl">
             <div style="width:793px;height:400px;background:#999;"></div>
@@ -190,7 +192,7 @@
                 <div class="ticket-btn fl"><i @click.stop="deleteTicket(item.key)" class="iconfont icon-delete delete-ticket" :title="(form.ticket_data && form.ticket_data.length === 1) ? '至少保留一个有效票种' : ''" :class="{disabled: (form.ticket_data && form.ticket_data.length <= 1)}"></i></div>
               </li>
               <li v-if="form.ticket_data && (form.ticket_data.length === 0 || form.ticket_data.length < 20)" class="ticket-bottom-btn">
-                <div @click.stop="addTicket" @mousedown.stop="addDown" @mouseout="removeDown" @mouseup="removeDown" class="add-ticket">
+                <div @click.stop="addTicket" class="add-ticket">
                   <div class="inner"><i class="iconfont icon-jiahao"></i>添加票种</div>
                 </div>
               </li>
@@ -208,8 +210,8 @@
         <div class="form-item clearfix">
           <div class="form-left fl" style="line-height:20px">费用中是否包含保险</div>
           <div class="form-right fl">
-            <el-radio class="fl form-radio" v-model="form.has_insurance" label="1">包含</el-radio>
-            <el-radio class="fl form-radio" v-model="form.has_insurance" label="2">不包含</el-radio>
+            <el-radio class="fl form-radio" style="min-width:unset;" v-model="form.has_insurance" label="1">包含</el-radio>
+            <el-radio class="fl form-radio" style="min-width:unset;" v-model="form.has_insurance" label="2">不包含</el-radio>
           </div>
         </div>
       </div>
@@ -248,6 +250,8 @@
 import Vue from 'vue'
 import TopNav from '@/components/TopNav'
 import Us from '@/components/Us'
+import uploadUtil from '@/lib/uploadUtil'
+import axios from 'axios'
 import { Upload, DatePicker, Button, Radio, Select, Option, CheckboxGroup, Checkbox } from 'element-ui'
 import VueAMap from 'vue-amap'
 Vue.use(VueAMap)
@@ -277,7 +281,9 @@ let amapManager = VueAMap.initAMapApiLoader({
 export default {
   data () {
     let self = this
+    console.log('imageUploadUrl', this.$imageUploadUrl)
     return {
+      upload_data: {},
       value: '',
       canPreview: false,
       canPublish: false,
@@ -348,12 +354,10 @@ export default {
         point: [110.348828, 20.018737],
         events: {
           click (e) {
-            console.log('markerPosition', [e.lnglat.lng, e.lnglat.lat])
             if (!self.amap_data.geocoder) { // 解析插件未初始化完成
               return false
             }
             self.amap_data.geocoder.getAddress([e.lnglat.lng, e.lnglat.lat], function (status, result) {
-              console.log('coder_function', status, result)
               if (status === 'complete' && result.info === 'OK') {
                 if (result && result.regeocode) {
                   console.log('result.regeocode.formattedAddress', result.regeocode.formattedAddress)
@@ -369,7 +373,6 @@ export default {
               return false
             }
             self.amap_data.geocoder.getAddress([e.lnglat.lng, e.lnglat.lat], function (status, result) {
-              console.log('coder_function', status, result)
               if (status === 'complete' && result.info === 'OK') {
                 if (result && result.regeocode) {
                   console.log('result.regeocode.formattedAddress', result.regeocode.formattedAddress)
@@ -449,7 +452,6 @@ export default {
                     }
                     self.amap_data.districtsearch.search(item.name, function (status, result) {
                       if (result && result.info === 'OK') {
-                        console.log(item.name, result)
                         self.selectOptions.city_list[item.name] = result.districtList[0].districtList
                         if (item.name === '海南省') {
                           result.districtList[0].districtList.forEach(item => {
@@ -502,33 +504,55 @@ export default {
   },
   components: { TopNav, Us },
   methods: {
-    addDown (e) {
-      let eve = e || window.event
-      eve.currentTarget.classList.add('down')
-    },
-    removeDown (e) {
-      let eve = e || window.event
-      eve.currentTarget.classList.remove('down')
-    },
     preview () {
       console.log('preview11')
     },
     publish () {
       console.log('publish11')
     },
-    handleCoverSuccess (res, file) {
-      console.log('handleCoverSuccess', res, file)
-      this.form.cover.id = res.data.id[0]
-      // this.form.cover.url = URL.createObjectURL(file.raw)
-      this.form.cover.url = res.data.url[0]
-    },
     beforeCoverUpload (file) {
-      console.log('beforeCoverUpload', file)
       const isLt10M = file.size / 1024 / 1024 < 10 // 限制上传图片小雨10M
       if (!isLt10M) {
         this.$toast('上传头像图片大小不能超过 10MB!')
       }
       return isLt10M
+    },
+    httpRequest (upload) {
+      console.log('httpRequest')
+      const setData = async () => {
+        let md5 = await uploadUtil.getMd5(upload.file)
+        await this.$ajax('/jv/api/sts/H5', {
+          data: {
+            md5: md5
+          }
+        })
+          .then(res => {
+            let formData = new FormData()
+            formData.append('key', res.dir)
+            formData.append('policy', res.policy)
+            formData.append('OSSAccessKeyId', res.accessid)
+            formData.append('callback', res.callback)
+            formData.append('signature', res.signature)
+            formData.append('success_action_status', '200')
+            formData.append('file', upload.file)
+            let config = {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+            }
+            axios.post(this.$imageUploadUrl, formData, config).then(res => {
+              console.log('uploadSuccess', res)
+              this.form.cover.id = res.data.imageId
+              this.form.cover.url = res.data.url
+            }).catch(err => {
+              console.log(err)
+            })
+          })
+          .catch(err => {
+            console.log(err)
+          })
+      }
+      setData()
     },
     saveContent (e) {
       let eve = e || window.event
@@ -545,8 +569,10 @@ export default {
       let msStart = date.getTime()
       let msEnd = this.form.activity_time.end ? this.form.activity_time.end.getTime() : 0
       let msDeadline = this.form.deadline_date ? this.form.deadline_date.getTime() : 0
-      if (msStart >= msDeadline) {
-        this.$toast('开始时间大于等于截止时间，已重置截止时间！', 3000)
+      if (msStart >= msDeadline && msDeadline !== 0) {
+        if (this.form.deadline === '2') {
+          this.$toast('开始时间大于等于截止时间，已重置截止时间！', 3000)
+        }
         this.form.deadline_date = ''
       }
       if (msStart >= msEnd && msEnd) {
@@ -563,8 +589,10 @@ export default {
         this.form.activity_time.end = ''
         return false
       }
-      if (msEnd < msDeadline) {
-        this.$toast('结束时间小于截止时间，已重置截止时间', 3000)
+      if (msEnd < msDeadline && msDeadline !== 0) {
+        if (this.form.deadline === '2') {
+          this.$toast('结束时间小于截止时间，已重置截止时间', 3000)
+        }
         this.form.deadline_date = ''
       }
     },
@@ -604,16 +632,6 @@ export default {
           this.selectOptions.location_options = result.poiList.pois
         }
       })
-      // this.amap_data.geocoder.setCity('海口')
-      // this.amap_data.geocoder.getLocation(query, (status, result) => {
-      //   if (status === 'complete' && result.info === 'OK') {
-      //     // result中对应详细地理坐标信息
-      //     console.log('remoteMethodSuccess', status, result)
-      //   } else {
-      //     // 未获取到对应的信息
-      //     // this.$toast('获取位置失败！')
-      //   }
-      // })
     },
     resetMarker () {
       if (!this.selectOptions.location) { // 没有选中的地址
@@ -697,8 +715,22 @@ export default {
   margin: 0 auto;
   position: relative;
 }
+.page-main input{
+  color: #333;
+}
 .page-main /deep/ .el-radio__label, .page-main /deep/ .el-checkbox__label{
   font-size: 16px;
+  font-weight: normal;
+}
+.page-main /deep/ .el-upload-dragger{
+  border-radius: 0;
+  border: none;
+  width: unset;
+  height: unset;
+}
+.page-main /deep/ .el-input__inner{
+  font-size: 16px;
+  color: #333;
 }
 .overview{
   width: 1000px;
@@ -775,6 +807,7 @@ export default {
   height: 37px;
   line-height: 37px;
   font-size: 18px;
+  font-weight: bold;
   color: #fff;
   background-size: contain;
   background-position: center;
@@ -925,6 +958,7 @@ export default {
 }
 .form-radio{
   line-height: 40px;
+  min-width: 184px;
 }
 .address-select{
   width: 175px;
@@ -967,8 +1001,13 @@ export default {
   top: 5px;
   right: 5px;
 }
+.location-search-btn:hover{
+  background: #0189E3;
+  color: #D2EDFF;
+}
 .location-search-btn.disabled{
   background: #A6A6A6;
+  color: #fff;
 }
 /* 地图 */
 .amap-instance-container{
@@ -1064,9 +1103,9 @@ export default {
   color: #009AFF;
   margin: 0 auto;
 }
-.add-ticket.down {
-  background: #0189E3;
-  color: #0189E3;
+.add-ticket:hover {
+  background: linear-gradient(90deg, #009AFF, #00C0FF);
+  color: #fff;
 }
 .add-ticket .inner{
   background: #fff;
@@ -1077,6 +1116,9 @@ export default {
   background-clip:content-box;
   border-radius: 4px;
   vertical-align: middle;
+}
+.add-ticket:hover .inner{
+  background: transparent;
 }
 .add-ticket .icon-jiahao{
   margin-right: 7px;

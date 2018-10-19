@@ -13,6 +13,7 @@ if (process.env.NODE_ENV !== 'production') { // 非正式环境包，就实例�
 Vue.prototype.$assetsPublicPath = '/user-pc'
 Vue.prototype.$apiDomain = process.env.API_DOMAIN
 Vue.prototype.$apiDomainHttps = process.env.API_DOMAIN_HTTPS
+Vue.prototype.$imageUploadUrl = process.env.IMAGE_UPLOAD_URL
 Vue.prototype.$useHttps = process.env.HTTPS
 Vue.prototype.$locationDomain = process.env.LOCATION_DOMAIN
 Vue.prototype.$ajax = ajax
