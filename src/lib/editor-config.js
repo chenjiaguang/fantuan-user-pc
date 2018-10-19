@@ -9,7 +9,7 @@ config.toolbar = [
 config.height = 1000
 config.allowedContent = true
 config.extraPlugins = ['fantuanimageuploader']
-config.imageUploadUrl = 'http://fantuantest-img.oss-cn-beijing.aliyuncs.com'
+config.imageUploadUrl = process.env.IMAGE_UPLOAD_URL
 // config.extraAllowedContent = '*(*)' // 允许class属性
 
 export default config

@@ -62,7 +62,7 @@ export default {
             formData.append('signature', res.signature)
             formData.append('success_action_status', '200')
             formData.append('file', file, evt.data.requestData.upload.name)
-            xhr.open('POST', res.host, true)
+            xhr.open('POST', process.env.IMAGE_UPLOAD_URL, true)
             xhr.send(formData)
             // evt.stop()
           })
