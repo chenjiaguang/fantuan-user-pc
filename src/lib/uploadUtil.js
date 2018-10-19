@@ -63,7 +63,6 @@ export default {
   },
   async otherUrlToDataSrc (editor) {
     let imgs = editor.editable().find('img')
-    let change = false
     for (let i = 0; i < imgs.count(); i++) {
       let img = imgs.getItem(i)
       let imgSrc = img.getAttribute('src')
@@ -86,17 +85,9 @@ export default {
         })
         img.setAttribute('src', dataSrc)
         img.setAttribute('data-cke-saved-src', dataSrc)
-
-        change = true
       }
     }
-    if (change) {
-      setTimeout(() => {
-        console.log('editor.getData()', editor.getData())
-        this.dataSrcToFantUrl(editor)
-      }, 1000)
-    }
-    return change
+    this.dataSrcToFantUrl(editor)
   },
   dataSrcToFantUrl (editor) {
     let fileTools = window.CKEDITOR.fileTools

@@ -96,10 +96,7 @@ export default {
       )
       // datasrc = 'https://ss1.baidu.com/6ONXsjip0QIZ8tyhnq/it/u=1406800210,1377280389&fm=58'
       editor.insertHtml(`<img src="${datasrc}">`)
-
-      setTimeout(() => {
-        uploadUtil.dataSrcToFantUrl(editor)
-      }, 1000)
+      uploadUtil.dataSrcToFantUrl(editor)
 
       // 正在上传.cke_upload_uploading img
     }
