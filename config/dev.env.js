@@ -8,5 +8,6 @@ module.exports = merge(prodEnv, {
   HTTPS: _https,
   NODE_ENV: '"development"',
   API_DOMAIN: '"http://fanttest.fantuanlife.com"',
-  API_DOMAIN_HTTPS: '"https://fanttest.fantuanlife.com"'
+  API_DOMAIN_HTTPS: '"https://fanttest.fantuanlife.com"',
+  IMAGE_UPLOAD_URL: '"https://fantuantest-img.oss-cn-beijing.aliyuncs.com"'
 })
