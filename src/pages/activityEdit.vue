@@ -268,7 +268,7 @@ let amapManager = VueAMap.initAMapApiLoader({
   // 高德的key
   key: 'ba6c996137985103dfcccd5ac7457ccb',
   // 插件集合
-  plugin: ['ToolBar', 'Geolocation', 'PlaceSearch', 'Geocoder', 'DistrictSearch', 'Autocomplete', 'PlaceSearch', 'Scale', 'OverView', 'MapType', 'PolyEditor', 'CircleEditor'],
+  plugin: ['ToolBar', 'Geolocation', 'PlaceSearch', 'Geocoder', 'DistrictSearch'],
   // ui版本号
   uiVersion: '1.0.11',
   // 高德 sdk 版本，默认为 1.4.4
