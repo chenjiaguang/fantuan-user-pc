@@ -5,6 +5,7 @@ import TestEditor from '@/pages/TestEditor'
 const NotFoundPage = resolve => require(['@/pages/notFoundPage'], resolve)
 const ScanCode = resolve => require(['@/pages/scanCode'], resolve)
 const ActivityEdit = resolve => require(['@/pages/activityEdit'], resolve)
+const Success = resolve => require(['@/pages/success'], resolve)
 
 Vue.use(Router)
 let prefix = '/user-pc'
@@ -53,6 +54,15 @@ const router = new Router({
       component: ActivityEdit,
       meta: {
         title: '活动编辑',
+        keepAlive: false
+      }
+    },
+    {
+      path: prefix + '/success',
+      name: 'Success',
+      component: Success,
+      meta: {
+        title: '发布成功',
         keepAlive: false
       }
     }
