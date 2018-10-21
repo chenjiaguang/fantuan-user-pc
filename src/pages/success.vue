@@ -22,7 +22,6 @@ export default {
 }
 </script>
 
-
 <style scoped>
 .page-body{
   width: 1000px;
