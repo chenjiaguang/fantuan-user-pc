@@ -13,7 +13,7 @@
         <div class="box3"></div>
       </div>
       <div class="test-box">
-        <loading-icon />
+        <loading-icon :color="['red', 'green']" />
       </div>
       <div class="basic-setting">
         <div class="setting-header" :style="{backgroundImage: 'url(' + $assetsPublicPath + '/cwebassets-pc/image/head_bg.png)'}">基本信息设置</div>
@@ -1268,8 +1268,8 @@ export default {
   color: #FF2B2B;
 }
 .test-box{
-  width: 200px;
-  height: 200px;
-  background: #fff;
+  width: 50px;
+  height: 50px;
+  /* background: #fff; */
 }
 </style>
