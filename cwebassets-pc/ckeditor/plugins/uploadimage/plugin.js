@@ -59,9 +59,24 @@
 
 				uploadUrl: uploadUrl,
 
-				fileToElement: function() {
+				fileToElement: function(file) {
 					var img = new CKEDITOR.dom.element( 'img' );
+					let tempName=getUniqueImageFileName('jpg')
 					img.setAttribute( 'src', loadingImage );
+					img.setAttribute( 'data-needtofigure', "true" );
+					img.setAttribute( 'data-tempName', tempName);
+					window.fantuanFileToDataSrc(file).then((datasrc)=>{
+						let imgs = editor.editable().find('img')
+						for (let i = 0; i < imgs.count(); i++) {
+							let img = imgs.getItem(i)
+							if (img.getAttribute( 'data-tempName')) {
+								img.setAttribute( 'src', datasrc );
+								img.setAttribute('data-cke-saved-src', datasrc)
+								window.fantuanDataSrcToFantUrl(editor)
+								break;
+							}
+						}
+					})
 					return img;
 				},
 
@@ -79,11 +94,23 @@
 					var $img = this.parts.img.$,
 						width = upload.responseData.width || $img.naturalWidth,
 						height = upload.responseData.height || $img.naturalHeight;
+					
 
-					// Set width and height to prevent blinking.
-					this.replaceWith( '<img src="' + upload.url + '" ' +
-						'width="' + width + '" ' +
-						'height="' + height + '">' );
+						// fant-image
+					let html=`
+					<figure class="easyimage easyimage-align-left">
+						<img src="${upload.url}" />
+						<figcaption></figcaption>
+					</figure>
+					`
+
+					let tempDoc = document.implementation.createHTMLDocument( '' )
+					let temp = new CKEDITOR.dom.element(tempDoc.body)
+					temp.appendHtml(html);
+					let figure = temp.find( 'figure' );
+					editor.widgets.initOn(figure, 'easyimage')
+
+					this.replaceWith(figure.$[0].outerHTML+'<p></p>');
 				}
 			} );
 

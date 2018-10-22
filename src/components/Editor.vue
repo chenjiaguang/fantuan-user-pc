@@ -1,5 +1,6 @@
 <template>
   <div>
+    <button @click="preview">preview</button>
     <input type="file" id="btn_file" style="display:none" @change="change">
     <div ref="editor"></div>
   </div>
@@ -10,6 +11,7 @@ import { Button } from 'element-ui'
 import FantUpload from '@/components/FantUpload'
 import editorConfig from '@/lib/editor-config'
 import uploadUtil from '@/lib/uploadUtil'
+import utils from '@/lib/utils'
 let editor = null
 Vue.use(Button)
 export default {
@@ -25,24 +27,32 @@ export default {
   },
   mounted () {
     window.fantuanUpload = this.upload.bind(this)
+    window.fantuanFileToDataSrc = uploadUtil.getDataSrc.bind(uploadUtil)
+    window.fantuanDataSrcToFantUrl = (e) => uploadUtil.dataSrcToFantUrl(e)
+
     this.create()
   },
   methods: {
-    create () {
+    preview () {
+      utils.preview(editor.getData())
+    },
+    handleInit () {
       if (editor && editor.destroy) {
         editor.destroy()
         editor = null
       }
       editor = window.CKEDITOR.replace(this.$refs.editor, editorConfig)
       editor.setData(this.value)
+    },
+    handleEvent () {
       editor.on('change', e => {
         this.$emit('input', e.editor.getData())
       })
-      editor.on('paste', e => {
-        setTimeout(() => {
-          uploadUtil.otherUrlToDataSrc(editor)
-        }, 0)
-      })
+      // editor.on('paste', e => {
+      //   setTimeout(() => {
+      //     uploadUtil.otherUrlToDataSrc(editor)
+      //   }, 0)
+      // })
       editor.on('fileUploadRequest', async evt => {
         evt.stop()
         let file = evt.data.requestData.upload.file
@@ -82,9 +92,16 @@ export default {
           data.message = response.msg
           evt.cancel()
         } else {
-          data.url = response.data.url
+          data.url = utils.getHttpsUrl(response.data.url)
+          data.response = {
+            'default': utils.getHttpsUrl(response.data.url)
+          }
         }
       })
+    },
+    create () {
+      this.handleInit()
+      this.handleEvent()
     },
     upload () {
       document.getElementById('btn_file').click()
@@ -95,7 +112,12 @@ export default {
         files[files.length - 1]
       )
       // datasrc = 'https://ss1.baidu.com/6ONXsjip0QIZ8tyhnq/it/u=1406800210,1377280389&fm=58'
-      editor.insertHtml(`<img src="${datasrc}">`)
+      // editor.insertHtml(`<figure class="easyimage easyimage-align-left">
+      //   <img src="${datasrc}" />
+      //   <figcaption></figcaption>
+      // </figure>`)
+      editor.insertHtml(`<img src="${datasrc}" data-needtofigure="true"/>`)
+
       uploadUtil.dataSrcToFantUrl(editor)
 
       // 正在上传.cke_upload_uploading img

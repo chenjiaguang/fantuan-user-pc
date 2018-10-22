@@ -66,7 +66,8 @@ export default {
     for (let i = 0; i < imgs.count(); i++) {
       let img = imgs.getItem(i)
       let imgSrc = img.getAttribute('src')
-      if (imgSrc && imgSrc.substring(0, 5) !== 'data:' && imgSrc.indexOf('fantuanlife.com') === -1) {
+      let needtofigure = img.getAttribute('data-needtofigure')
+      if (imgSrc && imgSrc.substring(0, 5) !== 'data:' && imgSrc.indexOf('fantuanlife.com') === -1 && needtofigure) {
         let dataSrc = await new Promise(function (resolve, reject) {
           let img = new Image()
           img.crossOrigin = 'Anonymous'
@@ -77,7 +78,7 @@ export default {
             canvas.height = this.height
             canvas.width = this.width
             ctx.drawImage(this, 0, 0)
-            dataURL = canvas.toDataURL()
+            dataURL = canvas.toDataURL('jpg')
             resolve(dataURL)
             canvas = null
           }

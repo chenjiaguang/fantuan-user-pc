@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="referrer" content="never">
+    <title>预览</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-size: 14px;
+        background-color: #000000;
+      }
+      #preview {
+        box-sizing: border-box;
+        overflow-y: auto;
+        margin: 0 auto;
+        padding: 10px;
+        width: 100%;
+        max-width: 375px;
+        min-height: 667px;
+        max-height: 100vh;
+        background-color: #ffffff;
+      }
+    </style>
+    <style>
+      .article-content{
+        margin:0 15px;
+      }
+      .article-content img{
+        max-width:100% !important;
+        display:block;
+      }
+      .article-content img.default{
+        background:#f0f0f0;
+      }
+      .article-content p{
+        -webkit-margin-before: 0;
+        -webkit-margin-after: 0;
+      }
+      .article-content h1,
+      .article-content h2,
+      .article-content h3,
+      .article-content h4,
+      .article-content h5,
+      .article-content h6{
+        -webkit-margin-before: 0;
+        -webkit-margin-after: 0;
+        font-size:17px;
+      }
+      .article-content.toutiaohao{
+        line-height:1.5;
+        font-size:17px;
+      }
+      /*今日头条图片说明样式*/
+      .article-content.toutiaohao .pgc-img-caption{
+        text-align: center;
+        color: #777;
+        font-size: 12px;
+        line-height: 16px;
+        margin-top: 8px;
+        margin-bottom: 15px;
+      }
+      .article-content.toutiaohao p{
+        margin:10px 0;
+      }
+      .article-content.toutiaohao img{
+        display:block;
+        margin:4px auto;
+      }
+      .article-content.toutiaohao blockquote {
+        font-size: 16px;
+        line-height: 22px;
+        padding: 15px;
+        color: #999;
+        border: 1px solid #E8E8E8;
+        background: #F4F5F6;
+        -webkit-margin-before: 0;
+        -webkit-margin-after: 0;
+        -webkit-margin-start: 0;
+        -webkit-margin-end: 0;
+      }
+      .article-content.toutiaohao blockquote p{
+        font-size: 16px;
+        line-height: 22px;
+        margin: 10px !important;
+        color: #505050;
+      }
+    </style>
+  </head>
+  <body>
+    <!--[if lte IE 9]>
+    <div style="border-bottom: 1px solid #a8a500; height: 50px; line-height: 50px; text-align: center; background-color: #fdfa00;">请更新你的浏览器</div>
+    <![endif]-->
+    <noscript>
+      你必须启用JavaScript才能浏览此内容。
+    </noscript>
+    <div id="preview" class="article-content toutiaohao">正在生成预览...</div>
+  </body>
+</html>
