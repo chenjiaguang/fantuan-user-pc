@@ -1,6 +1,6 @@
 <template>
-  <div class="page">
-    <top-nav :buttons="true" :canPreview="false" :canPublish="true" @preview="preview" @publish="publish" />
+  <div class="page" @click.stop="showLocationOptions = false">
+    <top-nav :buttons="true" :canPreview="canPreview" :canPublish="canPublish" @preview="preview" @publish="publish" />
     <div class="page-main">
       <div class="overview clearfix">
         <div class="account fl">账号：<span>{{overview.account.name}}</span></div>
@@ -11,6 +11,9 @@
         <div class="box1"></div>
         <div class="box2"></div>
         <div class="box3"></div>
+      </div>
+      <div class="test-box">
+        <loading-icon />
       </div>
       <div class="basic-setting">
         <div class="setting-header" :style="{backgroundImage: 'url(' + $assetsPublicPath + '/cwebassets-pc/image/head_bg.png)'}">基本信息设置</div>
@@ -53,6 +56,7 @@
           <div class="form-right fl clearfix">
             <el-date-picker
               class="fl date-picker"
+              popper-class="ft-popper-1"
               prefix-icon="iconfont icon-date"
               :editable="false"
               :clearable="false"
@@ -61,11 +65,13 @@
               placeholder="请选择开始时间"
               default-time="00:00:00"
               :picker-options="pickerOptions.start"
-              @change="changeStart">
+              @change="changeStart"
+              @focus="focusPicker">
             </el-date-picker>
             <div class="fl center-sign">至</div>
             <el-date-picker
               class="fl date-picker"
+              popper-class="ft-popper-2"
               prefix-icon="iconfont icon-date"
               :editable="false"
               :clearable="false"
@@ -74,7 +80,8 @@
               placeholder="请选择结束时间"
               default-time="00:00:00"
               :picker-options="pickerOptions.end"
-              @change="changeEnd">
+              @change="changeEnd"
+              @focus="focusPicker">
             </el-date-picker>
           </div>
         </div>
@@ -89,6 +96,7 @@
             <el-date-picker
               ref="deadlinePicker"
               class="fl date-picker"
+              popper-class="ft-popper-3"
               prefix-icon="iconfont icon-date"
               :disabled="form.deadline === '1'"
               :editable="false"
@@ -98,7 +106,8 @@
               placeholder="请选择截止时间"
               default-time="00:00:00"
               :picker-options="pickerOptions.deadline"
-              @change="changeDeadlineDate">
+              @change="changeDeadlineDate"
+              @focus="focusPicker">
             </el-date-picker>
           </div>
         </div>
@@ -114,7 +123,7 @@
         <div v-if="form.address.toString() === '2'" class="form-item clearfix" style="margin-top:15px;">
           <div class="form-left fl" style="color:transparent">活动地图</div>
           <div class="form-right fl clearfix">
-            <el-select class="fl address-select" value-key="name" style="display:none" disabled v-model="form.address_data.province" placeholder="选择省" @change="provinceChange">
+            <el-select class="fl address-select" popper-class="ft-popper-4" value-key="name" style="display:none" disabled v-model="form.address_data.province" placeholder="选择省" @change="provinceChange" @focus="e => focusSelector('ft-popper-4', e)">
               <el-option
                 v-for="item in selectOptions.province_list"
                 :key="item.name"
@@ -122,7 +131,7 @@
                 :value="item">
               </el-option>
             </el-select>
-            <el-select class="fl address-select" value-key="name" v-model="form.address_data.city" placeholder="选择城市" @change="cityChange">
+            <el-select class="fl address-select" popper-class="ft-popper-5" value-key="name" v-model="form.address_data.city" placeholder="选择城市" @change="cityChange" @focus="e => focusSelector('ft-popper-5', e)">
               <el-option
                 v-for="item in selectOptions.city_list[form.address_data.province.name]"
                 :key="item.name"
@@ -130,7 +139,7 @@
                 :value="item">
               </el-option>
             </el-select>
-            <el-select class="fl address-select" value-key="name" v-model="form.address_data.district" placeholder="选择区/县">
+            <el-select class="fl address-select" popper-class="ft-popper-6" value-key="name" v-model="form.address_data.district" placeholder="选择区/县" @focus="e => focusSelector('ft-popper-6', e)">
               <el-option
                 v-for="item in selectOptions.district_list"
                 :key="item.name"
@@ -139,7 +148,8 @@
               </el-option>
             </el-select>
             <div class="location-search-box fl clearfix">
-              <el-select
+              <input class="location-address" v-model="form.address_data.location" placeholder="请输入详细地址，例如金贸中路1号店" @input="remoteMethod" @focus="showLocationOptions = true" @click.stop />
+              <!-- <el-select
                 class="location-search-select fl"
                 value-key="id"
                 v-model="selectOptions.location"
@@ -154,8 +164,11 @@
                   :label="item.name"
                   :value="item">
                 </el-option>
-              </el-select>
+              </el-select> -->
               <div class="location-search-btn fl" @click="resetMarker" :class="{disabled: !selectOptions.location}"><i class="iconfont icon-location" style="font-size:18px;margin-right:5px;vertical-align:middle;"></i><span style="vertical-align:middle">标记位置</span></div>
+              <ul class="location-search-options" v-if="showLocationOptions">
+                <li class="location-search-options-content" v-for="item in selectOptions.location_options" :key="item.id" @click="resetMarker(item, true)">{{item.name}}</li>
+              </ul>
             </div>
             <div class="amap-instance-container">
               <el-amap vid="ac-location" :center="amap_data.center" :zoom="amap_data.zoom" :map-manager="amap_data.manager" :plugin="amap_data.plugin">
@@ -250,6 +263,7 @@
 import Vue from 'vue'
 import TopNav from '@/components/TopNav'
 import Us from '@/components/Us'
+import LoadingIcon from '@/components/LoadingIcon'
 import uploadUtil from '@/lib/uploadUtil'
 import axios from 'axios'
 import { Upload, DatePicker, Button, Radio, Select, Option, CheckboxGroup, Checkbox } from 'element-ui'
@@ -283,10 +297,9 @@ export default {
     let self = this
     console.log('imageUploadUrl', this.$imageUploadUrl)
     return {
+      showLocationOptions: false,
       upload_data: {},
       value: '',
-      canPreview: false,
-      canPublish: false,
       overview: {
         account: {
           id: null,
@@ -502,8 +515,65 @@ export default {
       }
     }
   },
-  components: { TopNav, Us },
+  components: { TopNav, Us, LoadingIcon },
+  computed: {
+    canPreview: function () {
+      return this.confirmActivity(true)
+    },
+    canPublish: function () {
+      return this.confirmActivity(true)
+    }
+  },
   methods: {
+    confirmActivity (dontToast) {
+      let { name, cover: {id, url}, activity_time: {start, end}, deadline, deadline_date: deadlineDate, address, address_data: {province, city, district}, ticket_data: ticketData, sponsor_tel: sponsorTel } = this.form
+      let location = this.selectOptions.location
+      const errorObj = {
+        name: name ? '' : '请填写活动主题',
+        cover: (id && url) ? '' : '请上传活动封面',
+        activityTime: (start && end) ? '' : '请选择活动时间',
+        deadline: (deadline.toString() === '1' || (deadline.toString() === '2' && deadlineDate)) ? '' : '请设置正确的截止时间',
+        address: (address.toString() === '1' || (address.toString() === '2' && location)) ? '' : '请填写正确的活动地点',
+        ticket: (ticketData.length > 0 && ticketData.filter(item => item.name && item.name && (item.price || item.price === 0)).length === ticketData.length) ? '' : '请设置至少一种有效的票种',
+        sponsorTel: sponsorTel ? '' : '请填写咨询电话'
+      }
+      let flat = true
+      for (let i in errorObj) {
+        if (errorObj[i]) {
+          flat = false
+          if (!dontToast) {
+            this.$toast(errorObj[i])
+          }
+          break
+        }
+      }
+      return flat
+    },
+    focusPicker (e) {
+      let eve = e || window.event
+      let className = eve.popperClass
+      let pos = eve.$el.getBoundingClientRect()
+      let top = pos.top + pos.height + (document.documentElement.scrollTop || document.body.scrollTop)
+      let st = document.getElementById(className)
+      if (!st) {
+        st = document.createElement('style')
+        st.id = className
+      }
+      st.innerHTML = '.el-picker-panel.' + className + '{top:' + top + 'px !important}'
+      document.getElementsByTagName('body')[0].appendChild(st)
+    },
+    focusSelector (className, e) {
+      let eve = e || window.event
+      let pos = eve.currentTarget.getBoundingClientRect()
+      let top = pos.top + pos.height + (document.documentElement.scrollTop || document.body.scrollTop)
+      let st = document.getElementById(className)
+      if (!st) {
+        st = document.createElement('style')
+        st.id = className
+      }
+      st.innerHTML = '.el-select-dropdown.' + className + '{top:' + top + 'px !important}'
+      document.getElementsByTagName('body')[0].appendChild(st)
+    },
     preview () {
       console.log('preview11')
     },
@@ -616,30 +686,39 @@ export default {
     locationMarkerChange (e) {
       console.log('locationMarkerChange', e)
     },
-    remoteMethod (query) {
-      console.log('remoteMethod', query)
-      if (!this.amap_data.placesearch || !query) { // 未初始化过搜索服务 或 没有需要搜索的文字
-        return false
+    remoteMethod (e) {
+      let eve = e || window.event
+      const query = eve.currentTarget.value
+      if (this.amap_data.placesearch && query) { // 搜索服务已初始化完成 且 有需要搜索的文字
+        let {province, city, district} = this.form.address_data
+        let adcode = district.adcode || city.adcode || province.adcode
+        this.amap_data.placesearch.setCity(adcode)
+        this.selectOptions.location_loading = true
+        this.amap_data.placesearch.search(query, (status, result) => {
+          console.log('remoteMethod', result)
+          this.selectOptions.location_loading = false
+          // 查询成功时，result即对应匹配的POI信息
+          if (result && result.info === 'OK' && result.poiList && result.poiList.count) {
+            this.selectOptions.location_options = result.poiList.pois
+            this.selectOptions.location = result.poiList.pois[0]
+            this.resetMarker(result.poiList.pois[0])
+          }
+        })
       }
-      let {province, city, district} = this.form.address_data
-      let adcode = district.adcode || city.adcode || province.adcode
-      this.amap_data.placesearch.setCity(adcode)
-      this.selectOptions.location_loading = true
-      this.amap_data.placesearch.search(query, (status, result) => {
-        this.selectOptions.location_loading = false
-        // 查询成功时，result即对应匹配的POI信息
-        if (result && result.info === 'OK' && result.poiList && result.poiList.count) {
-          this.selectOptions.location_options = result.poiList.pois
-        }
-      })
     },
-    resetMarker () {
-      if (!this.selectOptions.location) { // 没有选中的地址
+    resetMarker (location, resetName) {
+      let _location = location || this.selectOptions.location
+      if (!_location) { // 没有选中的地址
         return false
       }
-      const lnglat = [this.selectOptions.location.location.lng, this.selectOptions.location.location.lat]
+      console.log('_location', _location)
+      const lnglat = [_location.location.lng, _location.location.lat]
+      this.selectOptions.location = _location
       this.location_position.point = lnglat
       this.amap_data.center = lnglat
+      if (resetName) {
+        this.form.address_data.location = _location.name
+      }
     },
     provinceChange (province) {
       console.log('provinceChange', province)
@@ -710,6 +789,9 @@ export default {
 </script>
 
 <style scoped>
+.page-main /deep/ input::placeholder, .page-main /deep/ select::placeholder, .page-main /deep/ textarea::placeholder{
+  color: #BBBBBB;
+}
 .page-main{
   width: 1200px;
   margin: 0 auto;
@@ -972,20 +1054,47 @@ export default {
   width: 409px;
   border: 1px solid #D2D2D2;
   position: relative;
+  overflow: visible;
 }
-.location-search-box /deep/ .el-input__inner{
-  height: 38px;
-  line-height: 38px;
-  padding-left: 10px;
+.location-search-options{
+  width: 306px;
+  max-height: 420px;
+  position: absolute;
+  left: 0;
+  top: 50px;
+  z-index: 5;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: #fff;
+  color: #333;
+  padding: 10 0px;
+  border-radius: 6px;
+  border: 1px solid #D2D2D2;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
 }
-.location-search-select /deep/ .el-input__inner{
+.location-search-options-content{
+  width: 100%;
+  font-size: 16px;
+  line-height: 32px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  padding: 0 10px;
+}
+.location-search-options-content:hover{
+  background-color: #f5f7fa;
+}
+.location-address{
   border: none;
   border-radius: 0;
   width: 306px;
+  height: 38px;
+  line-height: 38px;
+  font-size: 16px;
+  color: #333;
   cursor: text;
-}
-.location-search-select /deep/ .el-select__caret{
-  cursor: text !important;
+  padding-left: 10px;
 }
 .location-search-btn{
   width: 90px;
@@ -1157,5 +1266,10 @@ export default {
 <style>
 .el-date-table__row td:first-child, .el-date-table__row td:last-child{
   color: #FF2B2B;
+}
+.test-box{
+  width: 200px;
+  height: 200px;
+  background: #fff;
 }
 </style>
