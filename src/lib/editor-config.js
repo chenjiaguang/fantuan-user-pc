@@ -7,6 +7,7 @@ config.toolbar = [
 
 // config.language = 'en'
 config.height = 1000
+config.disallowedContent = 'a'
 config.allowedContent = true
 // config.removePlugins = 'image'
 config.extraPlugins = ['fantuanimageuploader']

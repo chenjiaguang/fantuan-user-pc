@@ -58,7 +58,7 @@ body.cke_editable > .cke_widget_wrapper_easyimage-side {
 }
 
 .cke_widget_wrapper_easyimage-align-left, :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-align-left) > .easyimage-align-left {
-	display: table;
+
 	margin-right: 1.5em;
 }
 
@@ -114,9 +114,6 @@ the initial render, otherwise it would start transitioning from opacity 1 to 0.x
 .cke_widget_wrapper_easyimage-align-left .cke_loader {
 	/* display: none; */
 	/* opacity: 0.75; */
-}
-.easyimage-align-left{
-	display: inline-block
 }
 .cke_widget_wrapper_easyimage{
 	margin-bottom: 6px;

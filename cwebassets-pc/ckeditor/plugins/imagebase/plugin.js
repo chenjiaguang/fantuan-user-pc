@@ -533,6 +533,11 @@
 		function setVisibility( caption, isVisible ) {
 			caption.data( 'cke-caption-active', isVisible );
 			caption.data( 'cke-caption-hidden', !isVisible );
+			if (!isVisible) {
+				caption.addClass('no-content')
+			}else{
+				caption.removeClass('no-content')
+			}
 		}
 
 		/**
@@ -567,8 +572,32 @@
 					} );
 				}
 
+				function eventKey(evt){
+					let widgets = getWidgetsWithFeature( editor.widgets.instances, 'caption' );
+					CKEDITOR.tools.array.forEach( widgets, function( widget ) {
+						if (getFocusedWidget(widget.editor) === widget) {
+							if (evt.data.keyCode==13) {
+								evt.cancel()
+							}
+							return false
+						}
+					});
+				}
+
+				function eventPaste(evt){
+					let widgets = getWidgetsWithFeature( editor.widgets.instances, 'caption' );
+					CKEDITOR.tools.array.forEach( widgets, function( widget ) {
+						if (getFocusedWidget(widget.editor) === widget) {
+							evt.data.dataValue=evt.data.dataValue.replace(/<.*?>/ig, '')
+							return false
+						}
+					});
+				}
+
 				listeners.push( editor.on( 'selectionChange', listener , null, null, 9 ) );
 				listeners.push( editor.on( 'blur', listener ) );
+				listeners.push( editor.on( 'key', eventKey, null, null, 100  ) );
+				listeners.push( editor.on( 'paste', eventPaste, null, null, 100  ) );
 			},
 
 			init: function() {
@@ -674,7 +703,7 @@
 				caption: {
 					selector: 'figcaption',
 					pathName: editor.lang.imagebase.pathNameCaption,
-					allowedContent: 'br em strong sub sup u s; a[!href,target]'
+					allowedContent: 'br'
 				}
 			},
 
