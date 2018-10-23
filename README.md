@@ -19,3 +19,16 @@ npm run build --report
 ```
 
 For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+
+
+
+
+ckeditor自定义源码部分
+fantuanimageuploader/*
+easyimage/plugin.js 删除paste
+imagebase/plugin.js 删除paste 不执行_beginUpload 描述框大量修改
+uploadimage/plugin.js 大量修改（关键）
+uploadwidget/plugin.js 取消此时使用的uploadimage
+cloudservices/plugin.js fileUploadRequest fileUploadResponse  清空内容
+easyimage.css 样式修改
+config.js删除cloudservices

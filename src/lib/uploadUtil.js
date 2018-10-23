@@ -46,6 +46,15 @@ export default {
       fileReader.readAsDataURL(file)
     })
   },
+  selectFile (callback) {
+    let input = document.createElement('input')
+    input.setAttribute('type', 'file')
+    input.onchange = (e) => {
+      let file = e.path[0].files[0]
+      callback(file)
+    }
+    input.click()
+  },
   padNumber (input) {
     if (input <= 9) {
       input = '0' + input
@@ -62,11 +71,13 @@ export default {
     return 'image-' + window.CKEDITOR.tools.array.map(dateParts, this.padNumber).join('') + '-' + this.uniqueNameCounter + '.' + type
   },
   async otherUrlToDataSrc (editor) {
+    console.log('otherUrlToDataSrc')
     let imgs = editor.editable().find('img')
     for (let i = 0; i < imgs.count(); i++) {
       let img = imgs.getItem(i)
       let imgSrc = img.getAttribute('src')
-      if (imgSrc && imgSrc.substring(0, 5) !== 'data:' && imgSrc.indexOf('fantuanlife.com') === -1) {
+      let tempName = img.getAttribute('data-tempName')
+      if (imgSrc && imgSrc.substring(0, 5) !== 'data:' && imgSrc.indexOf('fantuanlife.com') === -1 && (!tempName)) {
         let dataSrc = await new Promise(function (resolve, reject) {
           let img = new Image()
           img.crossOrigin = 'Anonymous'
@@ -77,12 +88,13 @@ export default {
             canvas.height = this.height
             canvas.width = this.width
             ctx.drawImage(this, 0, 0)
-            dataURL = canvas.toDataURL()
+            dataURL = canvas.toDataURL('jpg')
             resolve(dataURL)
             canvas = null
           }
           img.src = imgSrc
         })
+        console.log('data-cke-saved-src')
         img.setAttribute('src', dataSrc)
         img.setAttribute('data-cke-saved-src', dataSrc)
       }
@@ -102,9 +114,10 @@ export default {
       // Image have to contain src=data:...
       let isDataInSrc = imgSrc && imgSrc.substring(0, 5) === 'data:'
       let isRealObject = img.data('cke-realelement') === null
+      let tempName = img.getAttribute('data-tempName')
 
       // We are not uploading images in non-editable blocs and fake objects (https://dev.ckeditor.com/ticket/13003).
-      if (isDataInSrc && isRealObject && !img.data('cke-upload-id') && !img.isReadOnly(1)) {
+      if (isDataInSrc && isRealObject && !img.data('cke-upload-id') && !img.isReadOnly(1) && !tempName) {
         // Note that normally we'd extract this logic into a separate function, but we should not duplicate this string, as it might
         // be large.
         let imgFormat = imgSrc.match(/image\/([a-z]+?);/i)

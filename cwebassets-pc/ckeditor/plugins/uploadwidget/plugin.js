@@ -189,17 +189,17 @@
 
 					// No def.supportedTypes means all types are supported.
 					if ( !def.supportedTypes || fileTools.isTypeSupported( file, def.supportedTypes ) ) {
-						var el = def.fileToElement( file ),
-							loader = uploads.create( file, undefined, def.loaderType );
+						var el = def.fileToElement( file )
+							
 
 						if ( el ) {
-							loader[ loadMethod ]( def.uploadUrl, def.additionalRequestParameters );
+							// loader[ loadMethod ]( def.uploadUrl, def.additionalRequestParameters );
 
-							CKEDITOR.fileTools.markElement( el, name, loader.id );
+							// CKEDITOR.fileTools.markElement( el, name, loader.id );
 
-							if ( ( loadMethod == 'loadAndUpload' || loadMethod == 'upload' ) && !def.skipNotifications ) {
-								CKEDITOR.fileTools.bindNotifications( editor, loader );
-							}
+							// if ( ( loadMethod == 'loadAndUpload' || loadMethod == 'upload' ) && !def.skipNotifications ) {
+							// 	CKEDITOR.fileTools.bindNotifications( editor, loader );
+							// }
 
 							data.dataValue += el.getOuterHtml();
 						}

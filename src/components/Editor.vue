@@ -1,49 +1,92 @@
 <template>
   <div>
-    <input type="file" id="btn_file" style="display:none" @change="change">
+    <button @click="preview">preview</button>
     <div ref="editor"></div>
   </div>
 </template>
 <script>
 import Vue from 'vue'
 import { Button } from 'element-ui'
-import FantUpload from '@/components/FantUpload'
 import editorConfig from '@/lib/editor-config'
 import uploadUtil from '@/lib/uploadUtil'
-let editor = null
+import utils from '@/lib/utils'
 Vue.use(Button)
 export default {
-  props: ['value'],
-  components: { FantUpload },
+  props: ['data'],
   data () {
-    return {}
+    return {
+      editor: null
+    }
   },
   watch: {
-    value (val) {
-      if (editor && editor.setData) editor.setData(val)
+    data (val) {
+      if (this.editor && this.editor.setData) this.editor.setData(val)
     }
   },
   mounted () {
-    window.fantuanUpload = this.upload.bind(this)
+    window.fantuanUpload = () => uploadUtil.selectFile(this.uploadFile)
+    window.fantuanFileToDataSrc = (file) => uploadUtil.getDataSrc(file)
+    window.fantuanDataSrcToFantUrl = (editor) => uploadUtil.dataSrcToFantUrl(editor)
+
     this.create()
   },
   methods: {
-    create () {
-      if (editor && editor.destroy) {
-        editor.destroy()
-        editor = null
+    // 获取编辑器内容
+    getData () {
+      return this.editor.getData()
+    },
+    // 设置编辑器内容
+    setData (data) {
+      if (this.editor && this.editor.setData) this.editor.setData(data)
+    },
+    // 打开预览
+    preview () {
+      utils.preview(this.editor.getData())
+    },
+    // 获取内容字数
+    getTextContentLength () {
+      let oldhtml = this.editor.document.getBody().getHtml()
+      let description = oldhtml.replace(/<.*?>/ig, '')
+      return description.length
+    },
+    // 上传文件回调
+    async uploadFile (file) {
+      let datasrc = await uploadUtil.getDataSrc(file)
+      this.editor.insertHtml(`<img src="${datasrc}" data-needtofigure="true"/>`)
+      uploadUtil.dataSrcToFantUrl(this.editor)
+    },
+    // 编辑器初始化
+    create (data) {
+      this.handleInit(data)
+      this.handleEvent()
+    },
+    // 编辑器启动
+    handleInit (data) {
+      if (this.editor && this.editor.destroy) {
+        this.editor.destroy()
+        this.editor = null
       }
-      editor = window.CKEDITOR.replace(this.$refs.editor, editorConfig)
-      editor.setData(this.value)
-      editor.on('change', e => {
-        this.$emit('input', e.editor.getData())
+      this.editor = window.CKEDITOR.replace(this.$refs.editor, editorConfig)
+      this.editor.setData(data)
+    },
+    // 编辑器事件绑定
+    handleEvent () {
+      this.editor.on('change', e => {
+        // 编辑器内容变化事件
+        console.log('字数', this.getTextContentLength())
       })
-      editor.on('paste', e => {
-        setTimeout(() => {
-          uploadUtil.otherUrlToDataSrc(editor)
-        }, 0)
+      this.editor.on('contentDom', () => {
+        // 编辑器初始化完成事件
+        this.editor.document.$.addEventListener('keydown', (e) => {
+          this.$emit('keydown', e)
+        }, false)
       })
-      editor.on('fileUploadRequest', async evt => {
+      this.editor.on('afterPaste', e => {
+        // 编辑器粘贴结束事件
+        console.log('afterPaste')
+        uploadUtil.otherUrlToDataSrc(this.editor)
+      })
+      this.editor.on('fileUploadRequest', async evt => {
         evt.stop()
         let file = evt.data.requestData.upload.file
         let md5 = await uploadUtil.getMd5(file)
@@ -70,7 +113,7 @@ export default {
             console.log(err)
           })
       })
-      editor.on('fileUploadResponse', function (evt) {
+      this.editor.on('fileUploadResponse', function (evt) {
         evt.stop()
 
         var data = evt.data
@@ -82,24 +125,14 @@ export default {
           data.message = response.msg
           evt.cancel()
         } else {
-          data.url = response.data.url
+          data.url = utils.getHttpsUrl(response.data.url)
+          data.response = {
+            'default': utils.getHttpsUrl(response.data.url)
+          }
         }
       })
-    },
-    upload () {
-      document.getElementById('btn_file').click()
-    },
-    async change (e) {
-      let files = document.getElementById('btn_file').files
-      let datasrc = await uploadUtil.getDataSrc(
-        files[files.length - 1]
-      )
-      // datasrc = 'https://ss1.baidu.com/6ONXsjip0QIZ8tyhnq/it/u=1406800210,1377280389&fm=58'
-      editor.insertHtml(`<img src="${datasrc}">`)
-      uploadUtil.dataSrcToFantUrl(editor)
-
-      // 正在上传.cke_upload_uploading img
     }
+
   }
 }
 </script>
