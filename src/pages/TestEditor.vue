@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Editor ref="editor"  @keydown="saveContent"/>
+    <Editor ref="editor" @keydown="saveContent"/>
   </div>
 </template>
 

@@ -41,7 +41,7 @@
                   <p v-show="uploadError" class="loading-text" @click.stop>上传失败，重新上传</p>
                 </div>
                 <div v-show="!(uploadLoading || uploadError)" class="cover-btn" :class="{added: (form.cover.id && form.cover.url)}">
-                  <i class="iconfont icon-iccamera"></i>
+                  <i class="iconfont icon-camera"></i>
                   <div class="cover-btn-text">点击{{(form.cover.id && form.cover.url) ? '更换' : '添加'}}活动封面</div>
                 </div>
               </div>
@@ -184,9 +184,8 @@
         <!-- 活动详情 -->
         <div class="form-item clearfix">
           <div class="form-left fl required">活动详情</div>
-          <div class="form-right fl">
-            <editor />
-            <!-- <div style="width:793px;height:400px;background:#999;"></div> -->
+          <div class="form-right fl" style="width:793px">
+            <editor ref="editor" @keydown="saveContent" />
           </div>
         </div>
       </div>
@@ -514,12 +513,14 @@ export default {
           district: {},
           location: ''
         },
-        ticket_data: [],
+        ticket_data: [{name: '', price: '', amount: '', key: new Date().getTime()}],
         ticket_limit: '',
         has_insurance: '2',
         form_list: ['phone'],
         sponsor_tel: '',
-        agreement: true
+        agreement: true,
+        // editor的默认内容
+        editorContent: ''
       }
     }
   },
@@ -534,7 +535,7 @@ export default {
   },
   methods: {
     confirmActivity (dontToast) {
-      let { name, cover: {id, url}, activity_time: {start, end}, deadline, deadline_date: deadlineDate, address, address_data: {province, city, district}, ticket_data: ticketData, sponsor_tel: sponsorTel } = this.form
+      let { name, cover: {id, url}, activity_time: {start, end}, deadline, deadline_date: deadlineDate, address, ticket_data: ticketData, sponsor_tel: sponsorTel } = this.form
       let location = this.selectOptions.location
       const errorObj = {
         name: name ? '' : '请填写活动主题',
@@ -582,16 +583,46 @@ export default {
       st.innerHTML = '.el-select-dropdown.' + className + '{top:' + top + 'px !important}'
       document.getElementsByTagName('body')[0].appendChild(st)
     },
+    checkContent () {
+      let editor = this.$refs['editor'].editor
+      let imgs = editor.editable().find('img')
+      let pass = true
+      for (let i = 0; i < imgs.count(); i++) {
+        let img = imgs.getItem(i)
+        // Assign src once, as it might be a big string, so there's no point in duplicating it all over the place.
+        let imgSrc = img.getAttribute('src')
+        let imgClass = img.getAttribute('class')
+        // Image have to contain src=data:...
+        let isDataInSrc = imgSrc && imgSrc.substring(0, 5) === 'data:'
+        // 是否拖拽按钮
+        let isDragIcon = imgClass && imgClass.indexOf('cke_widget_drag_handler') !== -1
+        let isFantuan = imgSrc.indexOf('fantuanlife.com') !== -1
+        if ((isDataInSrc && !isDragIcon) || (!isDataInSrc && !isFantuan)) {
+          pass = false
+        }
+      }
+      return pass
+    },
     preview () {
-      console.log('preview11')
+      console.log('预览')
+      if (this.checkContent()) {
+        // 预览
+      } else {
+        // 提示编辑器中有图片未上传
+      }
     },
     publish () {
-      console.log('publish11')
+      console.log('发布')
+      if (this.checkContent()) {
+        // 发布
+      } else {
+        // 提示编辑器中有图片未上传
+      }
     },
     beforeCoverUpload (file) {
       const isLt10M = file.size / 1024 / 1024 < 10 // 限制上传图片小雨10M
       if (!isLt10M) {
-        this.$toast('上传头像图片大小不能超过 10MB!')
+        this.$toast('图片大于10M，请重新上传')
       }
       return isLt10M
     },
@@ -644,7 +675,7 @@ export default {
       const isMac = /macintosh|mac os x/i.test(navigator.userAgent)
       const controlDown = isMac ? eve.metaKey : eve.ctrlKey
       if (eve.keyCode.toString() === '83' && controlDown) {
-        console.log('执行保存操作') // 执行保存操作
+        console.log('保存，编辑器内容为:', this.$refs['editor'].getData()) // 执行保存操作
         eve.preventDefault()
         eve.stopPropagation()
         return false
@@ -791,9 +822,6 @@ export default {
   },
   mounted () {
     document.addEventListener('keydown', this.saveContent, false)
-    if (!this.form.ticket_data || !this.form.ticket_data.length) { // 没有票种数据时，初始化一组空数据
-      this.form.ticket_data = [{name: '', price: '', amount: '', key: new Date().getTime()}]
-    }
   },
   beforeDestroy () {
     document.removeEventListener('keydown', this.saveContent, false)
@@ -812,6 +840,15 @@ export default {
 }
 .page-main input{
   color: #333;
+}
+.page-main /deep/ input, .page-main /deep/ select{
+  transition: border-color 300ms;
+}
+.page-main /deep/ input:hover, .page-main /deep/ select:hover{
+  border-color: #009AFF;
+}
+.page-main /deep/ input:focus, .page-main /deep/ select:focus{
+  border-color: #009AFF;
 }
 .page-main /deep/ .el-radio__label, .page-main /deep/ .el-checkbox__label{
   font-size: 16px;
@@ -952,7 +989,6 @@ export default {
   background-size: cover;
   position: relative;
   cursor: pointer;
-  transition: all 300ms;
 }
 .cover-add.added{
   border-width: 0;
@@ -960,7 +996,7 @@ export default {
 .cover-add.error, .cover-add.loading{
   cursor: default;
 }
-.cover-add.added:hover:before{
+.cover-add.added:before{
   content: "";
   display: block;
   position: absolute;
@@ -969,7 +1005,12 @@ export default {
   left: 0;
   top: 0;
   background-color: rgba(0,0,0,0.2);
-  z-index: 1
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 300ms;
+}
+.cover-add.added:hover:before{
+  opacity: 1;
 }
 .cover-add.loading:hover:before, .cover-add.error:hover:before{
   background-color: transparent;
@@ -1002,7 +1043,7 @@ export default {
 .cover-add.added:hover .cover-btn{
   opacity: 1;
 }
-.icon-iccamera{
+.icon-camera{
   display: block;
   font-size: 76px;
   color: #BBBBBB;
@@ -1011,10 +1052,10 @@ export default {
   margin-top: -38px;
   transition: all 300ms;
 }
-.cover-add:hover .icon-iccamera{
+.cover-add:hover .icon-camera{
   color: #009AFF;
 }
-.cover-add.added:hover .icon-iccamera{
+.cover-add.added:hover .icon-camera{
   color: #fff;
 }
 .cover-btn-text{
@@ -1118,9 +1159,10 @@ export default {
 }
 .location-search-box{
   width: 409px;
-  border: 1px solid #D2D2D2;
+  /* border: 1px solid #D2D2D2; */
   position: relative;
   overflow: visible;
+  /* transform: border-color 300ms; */
 }
 .location-search-options{
   width: 306px;
@@ -1154,13 +1196,16 @@ export default {
 .location-address{
   border: none;
   border-radius: 0;
-  width: 306px;
-  height: 38px;
+  width: 409px;
+  height: 40px;
   line-height: 38px;
   font-size: 16px;
   color: #333;
   cursor: text;
   padding-left: 10px;
+  padding-right: 101px;
+  border: 1px solid #D2D2D2;
+  transition: border-color 300ms;
 }
 .location-search-btn{
   width: 90px;
