@@ -10,6 +10,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const portfinder = require('portfinder')
 
+// 获取dev的额外配置信息，来设置是否在development环境上启用https
+const devConfig = require('../config/dev.env')
+
 const HOST = process.env.HOST
 const PORT = process.env.PORT && Number(process.env.PORT)
 
@@ -43,7 +46,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     watchOptions: {
       poll: config.dev.poll,
     },
-    https: true
+    https: devConfig.HTTPS
   },
   plugins: [
     new webpack.DefinePlugin({

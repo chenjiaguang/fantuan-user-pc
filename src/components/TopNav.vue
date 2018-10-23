@@ -4,10 +4,10 @@
       <div class="nav-box clearfix" :style="{}">
         <img class="big-logo fl" alt="范团" :src="$assetsPublicPath + '/cwebassets-pc/image/van_logo.png'" />
         <img class="sub-logo fl" :src="$assetsPublicPath + '/cwebassets-pc/image/van_sub_logo.png'" />
-        <div v-if="buttons" @click="publish" @mousedown.stop="addDown" @mouseout="removeDown" @mouseup="removeDown" class="publish-btn fr" :class="{disabled: !canPublish}">
+        <div v-if="buttons" @click="publish" class="publish-btn fr" :class="{disabled: !canPublish}">
           <div class="inner">发布</div>
         </div>
-        <div v-if="buttons" @click="preview" @mousedown.stop="addDown" @mouseout="removeDown" @mouseup="removeDown" class="preview-btn fr" :class="{disabled: !canPreview}">
+        <div v-if="buttons" @click="preview" class="preview-btn fr" :class="{disabled: !canPreview}">
           <div class="inner">预览</div>
         </div>
       </div>
@@ -35,14 +35,6 @@ export default {
     return {}
   },
   methods: {
-    addDown (e) {
-      let eve = e || window.event
-      eve.currentTarget.classList.add('down')
-    },
-    removeDown (e) {
-      let eve = e || window.event
-      eve.currentTarget.classList.remove('down')
-    },
     publish () {
       if (!this.canPublish) { // disabled状态
         return false
@@ -111,11 +103,11 @@ export default {
   color: #fff;
   margin: 26px 100px 0 30px;
 }
-.preview-btn.down {
+.preview-btn:hover {
   background: #0189E3;
   color: #0189E3;
 }
-.publish-btn.down{
+.publish-btn:hover{
   background: #0189E3;
   color: #D2EDFF;
 }

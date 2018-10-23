@@ -1,6 +1,6 @@
 <template>
-  <div class="page">
-    <top-nav :buttons="true" :canPreview="false" :canPublish="false" />
+  <div class="page" @click.stop="showLocationOptions = false">
+    <top-nav :buttons="true" :canPreview="canPreview" :canPublish="canPublish" @preview="preview" @publish="publish" />
     <div class="page-main">
       <div class="overview clearfix">
         <div class="account fl">账号：<span>{{overview.account.name}}</span></div>
@@ -11,6 +11,9 @@
         <div class="box1"></div>
         <div class="box2"></div>
         <div class="box3"></div>
+      </div>
+      <div class="test-box">
+        <loading-icon :color="['red', 'green']" />
       </div>
       <div class="basic-setting">
         <div class="setting-header" :style="{backgroundImage: 'url(' + $assetsPublicPath + '/cwebassets-pc/image/head_bg.png)'}">基本信息设置</div>
@@ -28,10 +31,12 @@
             <el-upload
               class="avatar-uploader fl"
               :multiple="false"
-              :action="$apiDomain + '/jv/image/upload'"
+              :action="$imageUploadUrl"
+              :data="upload_data"
+              :drag="true"
               :show-file-list="false"
-              :on-success="handleCoverSuccess"
-              :before-upload="beforeCoverUpload">
+              :before-upload="beforeCoverUpload"
+              :http-request="httpRequest">
               <div class="cover-add fl" :class="{added: (form.cover.id && form.cover.url)}" :style="{backgroundImage: 'url(' + ((form.cover.id && form.cover.url) ? form.cover.url : '') + ')'}">
                 <div class="cover-btn" :class="{added: (form.cover.id && form.cover.url)}">
                   <div class="cover-btn-text">点击{{(form.cover.id && form.cover.url) ? '更换' : '添加'}}活动封面</div>
@@ -51,6 +56,7 @@
           <div class="form-right fl clearfix">
             <el-date-picker
               class="fl date-picker"
+              popper-class="ft-popper-1"
               prefix-icon="iconfont icon-date"
               :editable="false"
               :clearable="false"
@@ -59,11 +65,13 @@
               placeholder="请选择开始时间"
               default-time="00:00:00"
               :picker-options="pickerOptions.start"
-              @change="changeStart">
+              @change="changeStart"
+              @focus="focusPicker">
             </el-date-picker>
             <div class="fl center-sign">至</div>
             <el-date-picker
               class="fl date-picker"
+              popper-class="ft-popper-2"
               prefix-icon="iconfont icon-date"
               :editable="false"
               :clearable="false"
@@ -72,7 +80,8 @@
               placeholder="请选择结束时间"
               default-time="00:00:00"
               :picker-options="pickerOptions.end"
-              @change="changeEnd">
+              @change="changeEnd"
+              @focus="focusPicker">
             </el-date-picker>
           </div>
         </div>
@@ -87,6 +96,7 @@
             <el-date-picker
               ref="deadlinePicker"
               class="fl date-picker"
+              popper-class="ft-popper-3"
               prefix-icon="iconfont icon-date"
               :disabled="form.deadline === '1'"
               :editable="false"
@@ -96,7 +106,8 @@
               placeholder="请选择截止时间"
               default-time="00:00:00"
               :picker-options="pickerOptions.deadline"
-              @change="changeDeadlineDate">
+              @change="changeDeadlineDate"
+              @focus="focusPicker">
             </el-date-picker>
           </div>
         </div>
@@ -112,7 +123,7 @@
         <div v-if="form.address.toString() === '2'" class="form-item clearfix" style="margin-top:15px;">
           <div class="form-left fl" style="color:transparent">活动地图</div>
           <div class="form-right fl clearfix">
-            <el-select class="fl address-select" value-key="name" style="display:none" disabled v-model="form.address_data.province" placeholder="选择省" @change="provinceChange">
+            <el-select class="fl address-select" popper-class="ft-popper-4" value-key="name" style="display:none" disabled v-model="form.address_data.province" placeholder="选择省" @change="provinceChange" @focus="e => focusSelector('ft-popper-4', e)">
               <el-option
                 v-for="item in selectOptions.province_list"
                 :key="item.name"
@@ -120,7 +131,7 @@
                 :value="item">
               </el-option>
             </el-select>
-            <el-select class="fl address-select" value-key="name" v-model="form.address_data.city" placeholder="选择城市" @change="cityChange">
+            <el-select class="fl address-select" popper-class="ft-popper-5" value-key="name" v-model="form.address_data.city" placeholder="选择城市" @change="cityChange" @focus="e => focusSelector('ft-popper-5', e)">
               <el-option
                 v-for="item in selectOptions.city_list[form.address_data.province.name]"
                 :key="item.name"
@@ -128,7 +139,7 @@
                 :value="item">
               </el-option>
             </el-select>
-            <el-select class="fl address-select" value-key="name" v-model="form.address_data.district" placeholder="选择区/县">
+            <el-select class="fl address-select" popper-class="ft-popper-6" value-key="name" v-model="form.address_data.district" placeholder="选择区/县" @focus="e => focusSelector('ft-popper-6', e)">
               <el-option
                 v-for="item in selectOptions.district_list"
                 :key="item.name"
@@ -137,7 +148,8 @@
               </el-option>
             </el-select>
             <div class="location-search-box fl clearfix">
-              <el-select
+              <input class="location-address" v-model="form.address_data.location" placeholder="请输入详细地址，例如金贸中路1号店" @input="remoteMethod" @focus="showLocationOptions = true" @click.stop />
+              <!-- <el-select
                 class="location-search-select fl"
                 value-key="id"
                 v-model="selectOptions.location"
@@ -152,8 +164,11 @@
                   :label="item.name"
                   :value="item">
                 </el-option>
-              </el-select>
+              </el-select> -->
               <div class="location-search-btn fl" @click="resetMarker" :class="{disabled: !selectOptions.location}"><i class="iconfont icon-location" style="font-size:18px;margin-right:5px;vertical-align:middle;"></i><span style="vertical-align:middle">标记位置</span></div>
+              <ul class="location-search-options" v-if="showLocationOptions">
+                <li class="location-search-options-content" v-for="item in selectOptions.location_options" :key="item.id" @click="resetMarker(item, true)">{{item.name}}</li>
+              </ul>
             </div>
             <div class="amap-instance-container">
               <el-amap vid="ac-location" :center="amap_data.center" :zoom="amap_data.zoom" :map-manager="amap_data.manager" :plugin="amap_data.plugin">
@@ -162,8 +177,8 @@
             </div>
           </div>
         </div>
-         <!-- 活动详情 -->
-        <div class="form-item clearfix" style="margin-bottom: 15px;">
+        <!-- 活动详情 -->
+        <div class="form-item clearfix">
           <div class="form-left fl required">活动详情</div>
           <div class="form-right fl">
             <div style="width:793px;height:400px;background:#999;"></div>
@@ -190,13 +205,54 @@
                 <div class="ticket-btn fl"><i @click.stop="deleteTicket(item.key)" class="iconfont icon-delete delete-ticket" :title="(form.ticket_data && form.ticket_data.length === 1) ? '至少保留一个有效票种' : ''" :class="{disabled: (form.ticket_data && form.ticket_data.length <= 1)}"></i></div>
               </li>
               <li v-if="form.ticket_data && (form.ticket_data.length === 0 || form.ticket_data.length < 20)" class="ticket-bottom-btn">
-                <div @click.stop="addTicket" @mousedown.stop="addDown" @mouseout="removeDown" @mouseup="removeDown" class="add-ticket">
+                <div @click.stop="addTicket" class="add-ticket">
                   <div class="inner"><i class="iconfont icon-jiahao"></i>添加票种</div>
                 </div>
               </li>
             </ul>
           </div>
         </div>
+        <!-- 限购设置 -->
+        <div class="form-item clearfix">
+          <div class="form-left fl">限购设置</div>
+          <div class="form-right fl">
+            <input class="activity-limit" placeholder="每个账号的限购数量大于0，若无限制则无需填写" v-model="form.ticket_limit" @keypress="limitMax" />
+          </div>
+        </div>
+        <!-- 费用中是否包含保险 -->
+        <div class="form-item clearfix">
+          <div class="form-left fl" style="line-height:20px">费用中是否包含保险</div>
+          <div class="form-right fl">
+            <el-radio class="fl form-radio" style="min-width:unset;" v-model="form.has_insurance" label="1">包含</el-radio>
+            <el-radio class="fl form-radio" style="min-width:unset;" v-model="form.has_insurance" label="2">不包含</el-radio>
+          </div>
+        </div>
+      </div>
+      <div class="other-setting">
+        <div class="setting-header" :style="{backgroundImage: 'url(' + $assetsPublicPath + '/cwebassets-pc/image/head_bg.png)'}">其他设置</div>
+        <!-- 报名表单设置 -->
+        <div class="form-item clearfix">
+          <div class="form-left fl required" style="line-height:20px;padding-left:15px;box-sizing:border-box;">报名表单设置</div>
+          <div class="form-right fl">
+            <el-checkbox-group class="user-form-list" v-model="form.form_list">
+              <el-checkbox label="phone" disabled>手机</el-checkbox>
+              <el-checkbox label="name">姓名</el-checkbox>
+              <el-checkbox label="gender">性别</el-checkbox>
+              <el-checkbox label="idcard">身份证</el-checkbox>
+              <el-checkbox label="wechat">微信号</el-checkbox>
+            </el-checkbox-group>
+          </div>
+        </div>
+        <!-- 咨询电话 -->
+        <div class="form-item clearfix">
+          <div class="form-left fl required">咨询电话</div>
+          <div class="form-right fl">
+            <input class="activity-limit" placeholder="请输入主办方联系电话" v-model="form.sponsor_tel" />
+          </div>
+        </div>
+      </div>
+      <div class="agreement">
+        <el-checkbox class="agreement-checkbox" v-model="form.agreement" disabled>我同意<a href="#">《范团活动发布协议》</a></el-checkbox>
       </div>
     </div>
     <us :onlyCopyright="false" />
@@ -207,7 +263,10 @@
 import Vue from 'vue'
 import TopNav from '@/components/TopNav'
 import Us from '@/components/Us'
-import { Upload, DatePicker, Button, Radio, Select, Option } from 'element-ui'
+import LoadingIcon from '@/components/LoadingIcon'
+import uploadUtil from '@/lib/uploadUtil'
+import axios from 'axios'
+import { Upload, DatePicker, Button, Radio, Select, Option, CheckboxGroup, Checkbox } from 'element-ui'
 import VueAMap from 'vue-amap'
 Vue.use(VueAMap)
 Vue.use(Upload)
@@ -216,12 +275,14 @@ Vue.use(Button)
 Vue.use(Radio)
 Vue.use(Select)
 Vue.use(Option)
+Vue.use(CheckboxGroup)
+Vue.use(Checkbox)
 // 初始化vue-amap
 let amapManager = VueAMap.initAMapApiLoader({
   // 高德的key
   key: 'ba6c996137985103dfcccd5ac7457ccb',
   // 插件集合
-  plugin: ['ToolBar', 'Geolocation', 'PlaceSearch', 'Geocoder', 'DistrictSearch', 'Autocomplete', 'PlaceSearch', 'Scale', 'OverView', 'MapType', 'PolyEditor', 'CircleEditor'],
+  plugin: ['ToolBar', 'Geolocation', 'PlaceSearch', 'Geocoder', 'DistrictSearch'],
   // ui版本号
   uiVersion: '1.0.11',
   // 高德 sdk 版本，默认为 1.4.4
@@ -234,10 +295,11 @@ let amapManager = VueAMap.initAMapApiLoader({
 export default {
   data () {
     let self = this
+    console.log('imageUploadUrl', this.$imageUploadUrl)
     return {
+      showLocationOptions: false,
+      upload_data: {},
       value: '',
-      canPreview: false,
-      canPublish: false,
       overview: {
         account: {
           id: null,
@@ -305,12 +367,10 @@ export default {
         point: [110.348828, 20.018737],
         events: {
           click (e) {
-            console.log('markerPosition', [e.lnglat.lng, e.lnglat.lat])
             if (!self.amap_data.geocoder) { // 解析插件未初始化完成
               return false
             }
             self.amap_data.geocoder.getAddress([e.lnglat.lng, e.lnglat.lat], function (status, result) {
-              console.log('coder_function', status, result)
               if (status === 'complete' && result.info === 'OK') {
                 if (result && result.regeocode) {
                   console.log('result.regeocode.formattedAddress', result.regeocode.formattedAddress)
@@ -326,7 +386,6 @@ export default {
               return false
             }
             self.amap_data.geocoder.getAddress([e.lnglat.lng, e.lnglat.lat], function (status, result) {
-              console.log('coder_function', status, result)
               if (status === 'complete' && result.info === 'OK') {
                 if (result && result.regeocode) {
                   console.log('result.regeocode.formattedAddress', result.regeocode.formattedAddress)
@@ -406,7 +465,6 @@ export default {
                     }
                     self.amap_data.districtsearch.search(item.name, function (status, result) {
                       if (result && result.info === 'OK') {
-                        console.log(item.name, result)
                         self.selectOptions.city_list[item.name] = result.districtList[0].districtList
                         if (item.name === '海南省') {
                           result.districtList[0].districtList.forEach(item => {
@@ -448,19 +506,73 @@ export default {
           district: {},
           location: ''
         },
-        ticket_data: []
+        ticket_data: [],
+        ticket_limit: '',
+        has_insurance: '2',
+        form_list: ['phone'],
+        sponsor_tel: '',
+        agreement: true
       }
     }
   },
-  components: { TopNav, Us },
-  methods: {
-    addDown (e) {
-      let eve = e || window.event
-      eve.currentTarget.classList.add('down')
+  components: { TopNav, Us, LoadingIcon },
+  computed: {
+    canPreview: function () {
+      return this.confirmActivity(true)
     },
-    removeDown (e) {
+    canPublish: function () {
+      return this.confirmActivity(true)
+    }
+  },
+  methods: {
+    confirmActivity (dontToast) {
+      let { name, cover: {id, url}, activity_time: {start, end}, deadline, deadline_date: deadlineDate, address, address_data: {province, city, district}, ticket_data: ticketData, sponsor_tel: sponsorTel } = this.form
+      let location = this.selectOptions.location
+      const errorObj = {
+        name: name ? '' : '请填写活动主题',
+        cover: (id && url) ? '' : '请上传活动封面',
+        activityTime: (start && end) ? '' : '请选择活动时间',
+        deadline: (deadline.toString() === '1' || (deadline.toString() === '2' && deadlineDate)) ? '' : '请设置正确的截止时间',
+        address: (address.toString() === '1' || (address.toString() === '2' && location)) ? '' : '请填写正确的活动地点',
+        ticket: (ticketData.length > 0 && ticketData.filter(item => item.name && item.name && (item.price || item.price === 0)).length === ticketData.length) ? '' : '请设置至少一种有效的票种',
+        sponsorTel: sponsorTel ? '' : '请填写咨询电话'
+      }
+      let flat = true
+      for (let i in errorObj) {
+        if (errorObj[i]) {
+          flat = false
+          if (!dontToast) {
+            this.$toast(errorObj[i])
+          }
+          break
+        }
+      }
+      return flat
+    },
+    focusPicker (e) {
       let eve = e || window.event
-      eve.currentTarget.classList.remove('down')
+      let className = eve.popperClass
+      let pos = eve.$el.getBoundingClientRect()
+      let top = pos.top + pos.height + (document.documentElement.scrollTop || document.body.scrollTop)
+      let st = document.getElementById(className)
+      if (!st) {
+        st = document.createElement('style')
+        st.id = className
+      }
+      st.innerHTML = '.el-picker-panel.' + className + '{top:' + top + 'px !important}'
+      document.getElementsByTagName('body')[0].appendChild(st)
+    },
+    focusSelector (className, e) {
+      let eve = e || window.event
+      let pos = eve.currentTarget.getBoundingClientRect()
+      let top = pos.top + pos.height + (document.documentElement.scrollTop || document.body.scrollTop)
+      let st = document.getElementById(className)
+      if (!st) {
+        st = document.createElement('style')
+        st.id = className
+      }
+      st.innerHTML = '.el-select-dropdown.' + className + '{top:' + top + 'px !important}'
+      document.getElementsByTagName('body')[0].appendChild(st)
     },
     preview () {
       console.log('preview11')
@@ -468,19 +580,49 @@ export default {
     publish () {
       console.log('publish11')
     },
-    handleCoverSuccess (res, file) {
-      console.log('handleCoverSuccess', res, file)
-      this.form.cover.id = res.data.id[0]
-      // this.form.cover.url = URL.createObjectURL(file.raw)
-      this.form.cover.url = res.data.url[0]
-    },
     beforeCoverUpload (file) {
-      console.log('beforeCoverUpload', file)
       const isLt10M = file.size / 1024 / 1024 < 10 // 限制上传图片小雨10M
       if (!isLt10M) {
         this.$toast('上传头像图片大小不能超过 10MB!')
       }
       return isLt10M
+    },
+    httpRequest (upload) {
+      console.log('httpRequest')
+      const setData = async () => {
+        let md5 = await uploadUtil.getMd5(upload.file)
+        await this.$ajax('/jv/api/sts/H5', {
+          data: {
+            md5: md5
+          }
+        })
+          .then(res => {
+            let formData = new FormData()
+            formData.append('key', res.dir)
+            formData.append('policy', res.policy)
+            formData.append('OSSAccessKeyId', res.accessid)
+            formData.append('callback', res.callback)
+            formData.append('signature', res.signature)
+            formData.append('success_action_status', '200')
+            formData.append('file', upload.file)
+            let config = {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+            }
+            axios.post(this.$imageUploadUrl, formData, config).then(res => {
+              console.log('uploadSuccess', res)
+              this.form.cover.id = res.data.imageId
+              this.form.cover.url = res.data.url
+            }).catch(err => {
+              console.log(err)
+            })
+          })
+          .catch(err => {
+            console.log(err)
+          })
+      }
+      setData()
     },
     saveContent (e) {
       let eve = e || window.event
@@ -497,8 +639,10 @@ export default {
       let msStart = date.getTime()
       let msEnd = this.form.activity_time.end ? this.form.activity_time.end.getTime() : 0
       let msDeadline = this.form.deadline_date ? this.form.deadline_date.getTime() : 0
-      if (msStart >= msDeadline) {
-        this.$toast('开始时间大于等于截止时间，已重置截止时间！', 3000)
+      if (msStart >= msDeadline && msDeadline !== 0) {
+        if (this.form.deadline === '2') {
+          this.$toast('开始时间大于等于截止时间，已重置截止时间！', 3000)
+        }
         this.form.deadline_date = ''
       }
       if (msStart >= msEnd && msEnd) {
@@ -515,8 +659,10 @@ export default {
         this.form.activity_time.end = ''
         return false
       }
-      if (msEnd < msDeadline) {
-        this.$toast('结束时间小于截止时间，已重置截止时间', 3000)
+      if (msEnd < msDeadline && msDeadline !== 0) {
+        if (this.form.deadline === '2') {
+          this.$toast('结束时间小于截止时间，已重置截止时间', 3000)
+        }
         this.form.deadline_date = ''
       }
     },
@@ -540,40 +686,39 @@ export default {
     locationMarkerChange (e) {
       console.log('locationMarkerChange', e)
     },
-    remoteMethod (query) {
-      console.log('remoteMethod', query)
-      if (!this.amap_data.placesearch || !query) { // 未初始化过搜索服务 或 没有需要搜索的文字
-        return false
+    remoteMethod (e) {
+      let eve = e || window.event
+      const query = eve.currentTarget.value
+      if (this.amap_data.placesearch && query) { // 搜索服务已初始化完成 且 有需要搜索的文字
+        let {province, city, district} = this.form.address_data
+        let adcode = district.adcode || city.adcode || province.adcode
+        this.amap_data.placesearch.setCity(adcode)
+        this.selectOptions.location_loading = true
+        this.amap_data.placesearch.search(query, (status, result) => {
+          console.log('remoteMethod', result)
+          this.selectOptions.location_loading = false
+          // 查询成功时，result即对应匹配的POI信息
+          if (result && result.info === 'OK' && result.poiList && result.poiList.count) {
+            this.selectOptions.location_options = result.poiList.pois
+            this.selectOptions.location = result.poiList.pois[0]
+            this.resetMarker(result.poiList.pois[0])
+          }
+        })
       }
-      let {province, city, district} = this.form.address_data
-      let adcode = district.adcode || city.adcode || province.adcode
-      this.amap_data.placesearch.setCity(adcode)
-      this.selectOptions.location_loading = true
-      this.amap_data.placesearch.search(query, (status, result) => {
-        this.selectOptions.location_loading = false
-        // 查询成功时，result即对应匹配的POI信息
-        if (result && result.info === 'OK' && result.poiList && result.poiList.count) {
-          this.selectOptions.location_options = result.poiList.pois
-        }
-      })
-      // this.amap_data.geocoder.setCity('海口')
-      // this.amap_data.geocoder.getLocation(query, (status, result) => {
-      //   if (status === 'complete' && result.info === 'OK') {
-      //     // result中对应详细地理坐标信息
-      //     console.log('remoteMethodSuccess', status, result)
-      //   } else {
-      //     // 未获取到对应的信息
-      //     // this.$toast('获取位置失败！')
-      //   }
-      // })
     },
-    resetMarker () {
-      if (!this.selectOptions.location) { // 没有选中的地址
+    resetMarker (location, resetName) {
+      let _location = location || this.selectOptions.location
+      if (!_location) { // 没有选中的地址
         return false
       }
-      const lnglat = [this.selectOptions.location.location.lng, this.selectOptions.location.location.lat]
+      console.log('_location', _location)
+      const lnglat = [_location.location.lng, _location.location.lat]
+      this.selectOptions.location = _location
       this.location_position.point = lnglat
       this.amap_data.center = lnglat
+      if (resetName) {
+        this.form.address_data.location = _location.name
+      }
     },
     provinceChange (province) {
       console.log('provinceChange', province)
@@ -606,7 +751,7 @@ export default {
       console.log('this.form.ticket_data', this.form.ticket_data)
     },
     deleteTicket (key) {
-      console.log('this.form.ticket_data', )
+      console.log('this.form.ticket_data')
       if (!this.form.ticket_data || (this.form.ticket_data && this.form.ticket_data.length <= 1)) { // 不存在或者只有一项时，不可删除
         return false
       }
@@ -644,10 +789,30 @@ export default {
 </script>
 
 <style scoped>
+.page-main /deep/ input::placeholder, .page-main /deep/ select::placeholder, .page-main /deep/ textarea::placeholder{
+  color: #BBBBBB;
+}
 .page-main{
   width: 1200px;
   margin: 0 auto;
   position: relative;
+}
+.page-main input{
+  color: #333;
+}
+.page-main /deep/ .el-radio__label, .page-main /deep/ .el-checkbox__label{
+  font-size: 16px;
+  font-weight: normal;
+}
+.page-main /deep/ .el-upload-dragger{
+  border-radius: 0;
+  border: none;
+  width: unset;
+  height: unset;
+}
+.page-main /deep/ .el-input__inner{
+  font-size: 16px;
+  color: #333;
 }
 .overview{
   width: 1000px;
@@ -666,7 +831,7 @@ export default {
 .account span{
   color: #009AFF;
 }
-.basic-setting, .fee-setting{
+.basic-setting, .fee-setting, .other-setting{
   width: 1000px;
   border-radius: 6px;
   background: #fff;
@@ -675,7 +840,7 @@ export default {
   overflow: hidden;
   position: relative;
 }
-.fee-setting{
+.fee-setting, .other-setting{
   margin: 25px auto 0;
 }
 .sava-tip-box{
@@ -724,6 +889,7 @@ export default {
   height: 37px;
   line-height: 37px;
   font-size: 18px;
+  font-weight: bold;
   color: #fff;
   background-size: contain;
   background-position: center;
@@ -874,6 +1040,7 @@ export default {
 }
 .form-radio{
   line-height: 40px;
+  min-width: 184px;
 }
 .address-select{
   width: 175px;
@@ -887,20 +1054,47 @@ export default {
   width: 409px;
   border: 1px solid #D2D2D2;
   position: relative;
+  overflow: visible;
 }
-.location-search-box /deep/ .el-input__inner{
-  height: 38px;
-  line-height: 38px;
-  padding-left: 10px;
+.location-search-options{
+  width: 306px;
+  max-height: 420px;
+  position: absolute;
+  left: 0;
+  top: 50px;
+  z-index: 5;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: #fff;
+  color: #333;
+  padding: 10 0px;
+  border-radius: 6px;
+  border: 1px solid #D2D2D2;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
 }
-.location-search-select /deep/ .el-input__inner{
+.location-search-options-content{
+  width: 100%;
+  font-size: 16px;
+  line-height: 32px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  padding: 0 10px;
+}
+.location-search-options-content:hover{
+  background-color: #f5f7fa;
+}
+.location-address{
   border: none;
   border-radius: 0;
   width: 306px;
+  height: 38px;
+  line-height: 38px;
+  font-size: 16px;
+  color: #333;
   cursor: text;
-}
-.location-search-select /deep/ .el-select__caret{
-  cursor: text !important;
+  padding-left: 10px;
 }
 .location-search-btn{
   width: 90px;
@@ -916,8 +1110,13 @@ export default {
   top: 5px;
   right: 5px;
 }
+.location-search-btn:hover{
+  background: #0189E3;
+  color: #D2EDFF;
+}
 .location-search-btn.disabled{
   background: #A6A6A6;
+  color: #fff;
 }
 /* 地图 */
 .amap-instance-container{
@@ -1013,9 +1212,9 @@ export default {
   color: #009AFF;
   margin: 0 auto;
 }
-.add-ticket.down {
-  background: #0189E3;
-  color: #0189E3;
+.add-ticket:hover {
+  background: linear-gradient(90deg, #009AFF, #00C0FF);
+  color: #fff;
 }
 .add-ticket .inner{
   background: #fff;
@@ -1027,13 +1226,50 @@ export default {
   border-radius: 4px;
   vertical-align: middle;
 }
+.add-ticket:hover .inner{
+  background: transparent;
+}
 .add-ticket .icon-jiahao{
   margin-right: 7px;
+}
+
+/* 限购设置 */
+.activity-limit{
+  width: 388px;
+  height: 38px;
+  line-height: 38px;
+  border: 1px solid #D2D2D2;
+  padding-left: 10px;
+  box-sizing: content-box;
+  font-size: 16px;
+}
+/* 报名表单设置 */
+.user-form-list{
+  line-height: 40px;
+}
+/* 勾选协议 */
+.agreement{
+  width: 1000px;
+  border-radius: 6px;
+  background: #fff;
+  margin: 15px auto 30px;
+}
+.agreement-checkbox{
+  margin-left: 65px;
+  line-height: 40px;
+}
+.agreement-checkbox a{
+  color: #009AFF;
 }
 </style>
 
 <style>
 .el-date-table__row td:first-child, .el-date-table__row td:last-child{
   color: #FF2B2B;
+}
+.test-box{
+  width: 50px;
+  height: 50px;
+  /* background: #fff; */
 }
 </style>
