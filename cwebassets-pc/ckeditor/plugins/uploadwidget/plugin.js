@@ -262,7 +262,6 @@
 						return;
 					}
 
-					editor.fire( 'lockSnapshot' );
 
 					// Call users method, eg. if the status is `uploaded` then
 					// `onUploaded` method will be called, if exists.
@@ -270,7 +269,6 @@
 
 					if ( typeof widget[ methodName ] === 'function' ) {
 						if ( widget[ methodName ]( loader ) === false ) {
-							editor.fire( 'unlockSnapshot' );
 							return;
 						}
 					}
@@ -288,7 +286,6 @@
 						editor.widgets.del( widget );
 					}
 
-					editor.fire( 'unlockSnapshot' );
 				} );
 
 				loader.update();

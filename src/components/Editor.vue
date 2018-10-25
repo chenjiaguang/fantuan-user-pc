@@ -12,10 +12,10 @@ import uploadUtil from '@/lib/uploadUtil'
 import utils from '@/lib/utils'
 Vue.use(Button)
 export default {
+  editor: null,
   props: ['data'],
   data () {
     return {
-      editor: null
     }
   },
   watch: {
