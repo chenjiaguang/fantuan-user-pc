@@ -299,60 +299,60 @@
 			}, null, null, 3 );
 
 			editor.on( 'paste', function( evt ) {
-				var dataObj = evt.data,
-					type = editor._.nextPasteType || dataObj.type,
-					data = dataObj.dataValue,
-					trueType,
-					// Default is 'html'.
-					defaultType = editor.config.clipboard_defaultContentType || 'html',
-					transferType = dataObj.dataTransfer.getTransferType( editor ),
-					isExternalPaste = transferType == CKEDITOR.DATA_TRANSFER_EXTERNAL,
-					isActiveForcePAPT = editor.config.forcePasteAsPlainText === true;
+				// var dataObj = evt.data,
+				// 	type = editor._.nextPasteType || dataObj.type,
+				// 	data = dataObj.dataValue,
+				// 	trueType,
+				// 	// Default is 'html'.
+				// 	defaultType = editor.config.clipboard_defaultContentType || 'html',
+				// 	transferType = dataObj.dataTransfer.getTransferType( editor ),
+				// 	isExternalPaste = transferType == CKEDITOR.DATA_TRANSFER_EXTERNAL,
+				// 	isActiveForcePAPT = editor.config.forcePasteAsPlainText === true;
 
-				// If forced type is 'html' we don't need to know true data type.
-				if ( type == 'html' || dataObj.preSniffing == 'html' ) {
-					trueType = 'html';
-				} else {
-					trueType = recogniseContentType( data );
-				}
+				// // If forced type is 'html' we don't need to know true data type.
+				// if ( type == 'html' || dataObj.preSniffing == 'html' ) {
+				// 	trueType = 'html';
+				// } else {
+				// 	trueType = recogniseContentType( data );
+				// }
 
-				delete editor._.nextPasteType;
+				// delete editor._.nextPasteType;
 
-				// Unify text markup.
-				if ( trueType == 'htmlifiedtext' ) {
-					data = htmlifiedTextHtmlification( editor.config, data );
-				}
+				// // Unify text markup.
+				// if ( trueType == 'htmlifiedtext' ) {
+				// 	data = htmlifiedTextHtmlification( editor.config, data );
+				// }
 
-				// Strip presentational markup & unify text markup.
-				// Forced plain text (dialog or forcePAPT).
-				// Note: we do not check dontFilter option in this case, because forcePAPT was implemented
-				// before pasteFilter and pasteFilter is automatically used on Webkit&Blink since 4.5, so
-				// forcePAPT should have priority as it had before 4.5.
-				if ( type == 'text' && trueType == 'html' ) {
-					data = filterContent( editor, data, filtersFactory.get( 'plain-text' ) );
-				}
-				// External paste and pasteFilter exists and filtering isn't disabled.
-				// Or force filtering even for internal and cross-editor paste, when forcePAPT is active (#620).
-				else if ( isExternalPaste && editor.pasteFilter && !dataObj.dontFilter || isActiveForcePAPT ) {
-					data = filterContent( editor, data, editor.pasteFilter );
-				}
+				// // Strip presentational markup & unify text markup.
+				// // Forced plain text (dialog or forcePAPT).
+				// // Note: we do not check dontFilter option in this case, because forcePAPT was implemented
+				// // before pasteFilter and pasteFilter is automatically used on Webkit&Blink since 4.5, so
+				// // forcePAPT should have priority as it had before 4.5.
+				// if ( type == 'text' && trueType == 'html' ) {
+				// 	data = filterContent( editor, data, filtersFactory.get( 'plain-text' ) );
+				// }
+				// // External paste and pasteFilter exists and filtering isn't disabled.
+				// // Or force filtering even for internal and cross-editor paste, when forcePAPT is active (#620).
+				// else if ( isExternalPaste && editor.pasteFilter && !dataObj.dontFilter || isActiveForcePAPT ) {
+				// 	data = filterContent( editor, data, editor.pasteFilter );
+				// }
 
-				if ( dataObj.startsWithEOL ) {
-					data = '<br data-cke-eol="1">' + data;
-				}
-				if ( dataObj.endsWithEOL ) {
-					data += '<br data-cke-eol="1">';
-				}
+				// if ( dataObj.startsWithEOL ) {
+				// 	data = '<br data-cke-eol="1">' + data;
+				// }
+				// if ( dataObj.endsWithEOL ) {
+				// 	data += '<br data-cke-eol="1">';
+				// }
 
-				if ( type == 'auto' ) {
-					type = ( trueType == 'html' || defaultType == 'html' ) ? 'html' : 'text';
-				}
+				// if ( type == 'auto' ) {
+				// 	type = ( trueType == 'html' || defaultType == 'html' ) ? 'html' : 'text';
+				// }
 
-				dataObj.type = type;
-				dataObj.dataValue = data;
-				delete dataObj.preSniffing;
-				delete dataObj.startsWithEOL;
-				delete dataObj.endsWithEOL;
+				// dataObj.type = type;
+				// dataObj.dataValue = data;
+				// delete dataObj.preSniffing;
+				// delete dataObj.startsWithEOL;
+				// delete dataObj.endsWithEOL;
 			}, null, null, 6 );
 
 			// Inserts processed data into the editor at the end of the

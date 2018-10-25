@@ -71,7 +71,7 @@
 							let img = imgs.getItem(i)
 							if (img.getAttribute('data-tempName') == tempName) {
 								img.setAttribute('src', datasrc);
-								img.removeAttribute('data-tempName',false)
+								img.removeAttribute('data-tempName')
 								img.setAttribute('data-cke-saved-src', datasrc)
 								img.setAttribute('data-needtofigure', "true");
 								window.fantuanDataSrcToFantUrl(editor)
@@ -117,10 +117,39 @@
 					}else{
 						this.parts.img.setAttribute('src',upload.url)
 						this.parts.img.setAttribute('data-cke-saved-src',upload.url)
+						this.parts.img.removeAttribute('data-cke-widget-id')
+						this.parts.img.removeAttribute('data-cke-upload-id')
+						this.parts.img.removeAttribute('data-widget')
+						this.parts.img.removeAttribute('data-cke-widget-keep-attr')
+						this.parts.img.removeAttribute('data-cke-widget-data')
+						this.replaceWith(this.parts.img.$.outerHTML);
 					}
 				}
 			});
 
+			// Handle images which are not available in the dataTransfer.
+			// This means that we need to read them from the <img src="data:..."> elements.
+			editor.on( 'paste', function( evt ) {
+				let  data = evt.data;
+				// Prevent XSS attacks.
+				let	tempDoc = document.implementation.createHTMLDocument( '' );
+				let	temp = new CKEDITOR.dom.element( tempDoc.body );
+
+				// Without this isReadOnly will not works properly.
+				temp.data( 'cke-editable', 1 );
+
+				temp.appendHtml( data.dataValue );
+
+				let imgs = temp.find( 'img' );
+				let img;
+
+				for ( let i = 0; i < imgs.count(); i++ ) {
+					img = imgs.getItem( i );
+					img.removeAttribute('crossorigin')
+				}
+
+				data.dataValue = temp.getHtml();
+			},null,null,9 );
 		}
 	});
 
