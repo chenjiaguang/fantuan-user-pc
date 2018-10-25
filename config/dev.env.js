@@ -9,5 +9,5 @@ module.exports = merge(prodEnv, {
   NODE_ENV: '"development"',
   API_DOMAIN: '"http://fanttest.fantuanlife.com"',
   API_DOMAIN_HTTPS: '"https://fanttest.fantuanlife.com"',
-  IMAGE_UPLOAD_URL: '"https://fantuantest-img.oss-cn-beijing.aliyuncs.com"'
+  IMAGE_UPLOAD_URL: '"https://nfantuantest-img.oss-cn-beijing.aliyuncs.com"'
 })

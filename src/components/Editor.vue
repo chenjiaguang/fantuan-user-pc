@@ -12,10 +12,10 @@ import uploadUtil from '@/lib/uploadUtil'
 import utils from '@/lib/utils'
 Vue.use(Button)
 export default {
+  editor: null,
   props: ['data'],
   data () {
     return {
-      editor: null
     }
   },
   watch: {
@@ -33,7 +33,9 @@ export default {
   methods: {
     // 获取编辑器内容
     getData () {
-      return this.editor.getData()
+      let data = this.editor.getData()
+      data = data.replace(/[\r\n]/g, '')
+      return data
     },
     // 设置编辑器内容
     setData (data) {
@@ -41,7 +43,7 @@ export default {
     },
     // 打开预览
     preview () {
-      utils.preview(this.editor.getData())
+      utils.preview(this.getData())
     },
     // 获取内容字数
     getTextContentLength () {
