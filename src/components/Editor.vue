@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <button @click="preview">preview</button>
+  <div class="ft-editor">
+    <!-- <button @click="preview">preview</button> -->
     <div ref="editor"></div>
   </div>
 </template>
@@ -142,5 +142,15 @@ export default {
 <style scoped>
 .upload {
   /* display: none; */
+}
+.ft-editor /deep/ .cke{
+  border-color: #D2D2D2;
+  box-shadow: unset;
+}
+.ft-editor /deep/ .cke_bottom{
+  background: #F5F5F5;
+}
+.ft-editor /deep/ .cke_path_item, .ft-editor /deep/ .cke_path_empty{
+  color: #666;
 }
 </style>

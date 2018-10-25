@@ -6,7 +6,7 @@ config.toolbar = [
 // config.removeButtons = 'Save,NewPage,Preview,Print,Templates,Font,Italic,Strike,Subscript,Superscript,RemoveFormat,Blockquote,CreateDiv,Indent,Outdent,NumberedList,BulletedList,BidiRtl,BidiLtr,Language,Cut,Copy,Paste,PasteText,PasteFromWord,Redo,Replace,Find,Undo,SelectAll,Scayt,Form,Checkbox,Radio,TextField,Textarea,Select,Button,HiddenField,Link,Unlink,Anchor,Flash,Table,HorizontalRule,Smiley,SpecialChar,PageBreak,Iframe,ShowBlocks,Maximize,About'
 
 // config.language = 'en'
-config.height = 1000
+config.height = 600
 config.disallowedContent = 'a'
 config.allowedContent = true
 // config.removePlugins = 'image'

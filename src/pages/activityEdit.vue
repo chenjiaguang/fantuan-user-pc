@@ -12,9 +12,6 @@
         <div class="box2"></div>
         <div class="box3"></div>
       </div>
-      <div class="test-box">
-        <loading-icon :color="['red', 'green']" />
-      </div>
       <div class="basic-setting">
         <div class="setting-header" :style="{backgroundImage: 'url(' + $assetsPublicPath + '/cwebassets-pc/image/head_bg.png)'}">基本信息设置</div>
         <!-- 主题 -->
@@ -30,6 +27,7 @@
           <div class="form-right fl clearfix">
             <el-upload
               class="avatar-uploader fl"
+              :disabled="uploadLoading"
               :multiple="false"
               :action="$imageUploadUrl"
               :data="upload_data"
@@ -37,8 +35,13 @@
               :show-file-list="false"
               :before-upload="beforeCoverUpload"
               :http-request="httpRequest">
-              <div class="cover-add fl" :class="{added: (form.cover.id && form.cover.url)}" :style="{backgroundImage: 'url(' + ((form.cover.id && form.cover.url) ? form.cover.url : '') + ')'}">
-                <div class="cover-btn" :class="{added: (form.cover.id && form.cover.url)}">
+              <div class="cover-add fl" :class="{added: (form.cover.id && form.cover.url), loading: uploadLoading, error: uploadError}" :style="{backgroundImage: 'url(' + ((form.cover.id && form.cover.url) ? form.cover.url : '') + ')'}">
+                <div v-show="uploadLoading || uploadError" class="loading-box">
+                  <loading-icon v-show="uploadLoading" class="loading-icon" :size="34"/>
+                  <p v-show="uploadError" class="loading-text" @click.stop>上传失败，重新上传</p>
+                </div>
+                <div v-show="!(uploadLoading || uploadError)" class="cover-btn" :class="{added: (form.cover.id && form.cover.url)}">
+                  <i class="iconfont icon-camera"></i>
                   <div class="cover-btn-text">点击{{(form.cover.id && form.cover.url) ? '更换' : '添加'}}活动封面</div>
                 </div>
               </div>
@@ -166,8 +169,9 @@
                 </el-option>
               </el-select> -->
               <div class="location-search-btn fl" @click="resetMarker" :class="{disabled: !selectOptions.location}"><i class="iconfont icon-location" style="font-size:18px;margin-right:5px;vertical-align:middle;"></i><span style="vertical-align:middle">标记位置</span></div>
-              <ul class="location-search-options" v-if="showLocationOptions">
-                <li class="location-search-options-content" v-for="item in selectOptions.location_options" :key="item.id" @click="resetMarker(item, true)">{{item.name}}</li>
+              <ul class="location-search-options" v-show="showLocationOptions">
+                <li class="location-search-options-content" v-show="selectOptions.location_options && selectOptions.location_options.length > 0" v-for="item in selectOptions.location_options" :key="item.id" @click="resetMarker(item, true)">{{item.name}}</li>
+                <li class="location-search-options-content" v-show="!(selectOptions.location_options && selectOptions.location_options.length > 0)">暂无数据</li>
               </ul>
             </div>
             <div class="amap-instance-container">
@@ -180,8 +184,8 @@
         <!-- 活动详情 -->
         <div class="form-item clearfix">
           <div class="form-left fl required">活动详情</div>
-          <div class="form-right fl">
-            <div style="width:793px;height:400px;background:#999;"></div>
+          <div class="form-right fl" style="width:793px">
+            <editor ref="editor" @keydown="saveContent" />
           </div>
         </div>
       </div>
@@ -264,6 +268,7 @@ import Vue from 'vue'
 import TopNav from '@/components/TopNav'
 import Us from '@/components/Us'
 import LoadingIcon from '@/components/LoadingIcon'
+import Editor from '@/components/Editor'
 import uploadUtil from '@/lib/uploadUtil'
 import axios from 'axios'
 import { Upload, DatePicker, Button, Radio, Select, Option, CheckboxGroup, Checkbox } from 'element-ui'
@@ -299,6 +304,8 @@ export default {
     return {
       showLocationOptions: false,
       upload_data: {},
+      uploadLoading: false,
+      uploadError: false,
       value: '',
       overview: {
         account: {
@@ -506,16 +513,18 @@ export default {
           district: {},
           location: ''
         },
-        ticket_data: [],
+        ticket_data: [{name: '', price: '', amount: '', key: new Date().getTime()}],
         ticket_limit: '',
         has_insurance: '2',
         form_list: ['phone'],
         sponsor_tel: '',
-        agreement: true
+        agreement: true,
+        // editor的默认内容
+        editorContent: ''
       }
     }
   },
-  components: { TopNav, Us, LoadingIcon },
+  components: { TopNav, Us, LoadingIcon, Editor },
   computed: {
     canPreview: function () {
       return this.confirmActivity(true)
@@ -526,7 +535,7 @@ export default {
   },
   methods: {
     confirmActivity (dontToast) {
-      let { name, cover: {id, url}, activity_time: {start, end}, deadline, deadline_date: deadlineDate, address, address_data: {province, city, district}, ticket_data: ticketData, sponsor_tel: sponsorTel } = this.form
+      let { name, cover: {id, url}, activity_time: {start, end}, deadline, deadline_date: deadlineDate, address, ticket_data: ticketData, sponsor_tel: sponsorTel } = this.form
       let location = this.selectOptions.location
       const errorObj = {
         name: name ? '' : '请填写活动主题',
@@ -574,22 +583,54 @@ export default {
       st.innerHTML = '.el-select-dropdown.' + className + '{top:' + top + 'px !important}'
       document.getElementsByTagName('body')[0].appendChild(st)
     },
+    checkContent () {
+      let editor = this.$refs['editor'].editor
+      let imgs = editor.editable().find('img')
+      let pass = true
+      for (let i = 0; i < imgs.count(); i++) {
+        let img = imgs.getItem(i)
+        // Assign src once, as it might be a big string, so there's no point in duplicating it all over the place.
+        let imgSrc = img.getAttribute('src')
+        let imgClass = img.getAttribute('class')
+        // Image have to contain src=data:...
+        let isDataInSrc = imgSrc && imgSrc.substring(0, 5) === 'data:'
+        // 是否拖拽按钮
+        let isDragIcon = imgClass && imgClass.indexOf('cke_widget_drag_handler') !== -1
+        let isFantuan = imgSrc.indexOf('fantuanlife.com') !== -1
+        if ((isDataInSrc && !isDragIcon) || (!isDataInSrc && !isFantuan)) {
+          pass = false
+        }
+      }
+      return pass
+    },
     preview () {
-      console.log('preview11')
+      console.log('预览')
+      if (this.checkContent()) {
+        // 预览
+      } else {
+        // 提示编辑器中有图片未上传
+      }
     },
     publish () {
-      console.log('publish11')
+      console.log('发布')
+      if (this.checkContent()) {
+        // 发布
+      } else {
+        // 提示编辑器中有图片未上传
+      }
     },
     beforeCoverUpload (file) {
       const isLt10M = file.size / 1024 / 1024 < 10 // 限制上传图片小雨10M
       if (!isLt10M) {
-        this.$toast('上传头像图片大小不能超过 10MB!')
+        this.$toast('图片大于10M，请重新上传')
       }
       return isLt10M
     },
     httpRequest (upload) {
       console.log('httpRequest')
       const setData = async () => {
+        this.uploadLoading = true
+        this.uploadError = false
         let md5 = await uploadUtil.getMd5(upload.file)
         await this.$ajax('/jv/api/sts/H5', {
           data: {
@@ -612,13 +653,18 @@ export default {
             }
             axios.post(this.$imageUploadUrl, formData, config).then(res => {
               console.log('uploadSuccess', res)
+              this.uploadLoading = false
               this.form.cover.id = res.data.imageId
               this.form.cover.url = res.data.url
             }).catch(err => {
+              this.uploadLoading = false
+              this.uploadError = true
               console.log(err)
             })
           })
           .catch(err => {
+            this.uploadLoading = false
+            this.uploadError = true
             console.log(err)
           })
       }
@@ -629,7 +675,7 @@ export default {
       const isMac = /macintosh|mac os x/i.test(navigator.userAgent)
       const controlDown = isMac ? eve.metaKey : eve.ctrlKey
       if (eve.keyCode.toString() === '83' && controlDown) {
-        console.log('执行保存操作') // 执行保存操作
+        console.log('保存，编辑器内容为:', this.$refs['editor'].getData()) // 执行保存操作
         eve.preventDefault()
         eve.stopPropagation()
         return false
@@ -695,7 +741,6 @@ export default {
         this.amap_data.placesearch.setCity(adcode)
         this.selectOptions.location_loading = true
         this.amap_data.placesearch.search(query, (status, result) => {
-          console.log('remoteMethod', result)
           this.selectOptions.location_loading = false
           // 查询成功时，result即对应匹配的POI信息
           if (result && result.info === 'OK' && result.poiList && result.poiList.count) {
@@ -711,7 +756,6 @@ export default {
       if (!_location) { // 没有选中的地址
         return false
       }
-      console.log('_location', _location)
       const lnglat = [_location.location.lng, _location.location.lat]
       this.selectOptions.location = _location
       this.location_position.point = lnglat
@@ -778,9 +822,6 @@ export default {
   },
   mounted () {
     document.addEventListener('keydown', this.saveContent, false)
-    if (!this.form.ticket_data || !this.form.ticket_data.length) { // 没有票种数据时，初始化一组空数据
-      this.form.ticket_data = [{name: '', price: '', amount: '', key: new Date().getTime()}]
-    }
   },
   beforeDestroy () {
     document.removeEventListener('keydown', this.saveContent, false)
@@ -799,6 +840,15 @@ export default {
 }
 .page-main input{
   color: #333;
+}
+.page-main /deep/ input, .page-main /deep/ select{
+  transition: border-color 300ms;
+}
+.page-main /deep/ input:hover, .page-main /deep/ select:hover{
+  border-color: #009AFF;
+}
+.page-main /deep/ input:focus, .page-main /deep/ select:focus{
+  border-color: #009AFF;
 }
 .page-main /deep/ .el-radio__label, .page-main /deep/ .el-checkbox__label{
   font-size: 16px;
@@ -943,7 +993,10 @@ export default {
 .cover-add.added{
   border-width: 0;
 }
-.cover-add.added:hover:before{
+.cover-add.error, .cover-add.loading{
+  cursor: default;
+}
+.cover-add.added:before{
   content: "";
   display: block;
   position: absolute;
@@ -952,7 +1005,15 @@ export default {
   left: 0;
   top: 0;
   background-color: rgba(0,0,0,0.2);
-  z-index: 1
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 300ms;
+}
+.cover-add.added:hover:before{
+  opacity: 1;
+}
+.cover-add.loading:hover:before, .cover-add.error:hover:before{
+  background-color: transparent;
 }
 .cover-btn{
   width: 328px;
@@ -960,26 +1021,42 @@ export default {
   box-sizing: border-box;
   border: 1px dashed #D2D2D2;
   margin: 15px auto;
-  background-image: url('/user-pc/cwebassets-pc/image/add_cover.png');
+  /* background-image: url('/user-pc/cwebassets-pc/image/add_cover.png');
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 76px 67px;
+  background-size: 76px 67px; */
   position: relative;
   z-index: 2;
+  transition: all 300ms;
 }
 .cover-add:hover .cover-btn{
   border-color: #009AFF;
-  background-image: url('/user-pc/cwebassets-pc/image/add_cover_hover.png');
-  background-size: 72px 63px;
+  /* background-image: url('/user-pc/cwebassets-pc/image/add_cover_hover.png');
+  background-size: 72px 63px; */
 }
 .cover-add.added .cover-btn{
   border-color: transparent;
-  background-image: url('/user-pc/cwebassets-pc/image/add_cover_added.png');
-  background-size: 76px 67px;
+  /* background-image: url('/user-pc/cwebassets-pc/image/add_cover_added.png');
+  background-size: 76px 67px; */
   opacity: 0;
 }
 .cover-add.added:hover .cover-btn{
   opacity: 1;
+}
+.icon-camera{
+  display: block;
+  font-size: 76px;
+  color: #BBBBBB;
+  position: relative;
+  top: 50%;
+  margin-top: -38px;
+  transition: all 300ms;
+}
+.cover-add:hover .icon-camera{
+  color: #009AFF;
+}
+.cover-add.added:hover .icon-camera{
+  color: #fff;
 }
 .cover-btn-text{
   width: 100%;
@@ -990,12 +1067,42 @@ export default {
   left: 0;
   bottom: 0;
   text-align: center;
+  transition: all 300ms;
 }
 .cover-add:hover .cover-btn-text{
   color: #009AFF;
 }
 .added:hover .cover-btn-text{
   color: #fff;
+}
+.loading-box{
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  background: rgba(0,0,0,0.2);
+  z-index: 3;
+  transition: all 300ms;
+}
+.loading-text{
+  font-size: 16px;
+  line-height: 32px;
+  color: #FE3232;
+  cursor: pointer;
+  position: absolute;
+  width: 160px;
+  left: 50%;
+  top: 50%;
+  margin-left: -80px;
+  margin-top: -16px;
+}
+.loading-icon{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -17px;
+  margin-top: -17px;
 }
 .cover-tip{
   margin-left: 40px;
@@ -1052,9 +1159,10 @@ export default {
 }
 .location-search-box{
   width: 409px;
-  border: 1px solid #D2D2D2;
+  /* border: 1px solid #D2D2D2; */
   position: relative;
   overflow: visible;
+  /* transform: border-color 300ms; */
 }
 .location-search-options{
   width: 306px;
@@ -1088,13 +1196,16 @@ export default {
 .location-address{
   border: none;
   border-radius: 0;
-  width: 306px;
-  height: 38px;
+  width: 409px;
+  height: 40px;
   line-height: 38px;
   font-size: 16px;
   color: #333;
   cursor: text;
   padding-left: 10px;
+  padding-right: 101px;
+  border: 1px solid #D2D2D2;
+  transition: border-color 300ms;
 }
 .location-search-btn{
   width: 90px;
