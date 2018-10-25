@@ -2,7 +2,7 @@
 const merge = require('webpack-merge')
 const prodEnv = require('./prod.env')
 
-const _https = true
+const _https = false
 module.exports = merge(prodEnv, {
   // 通过该https的值来，决定在dev环境下是否开启https
   HTTPS: _https,

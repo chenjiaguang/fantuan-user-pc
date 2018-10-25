@@ -84,7 +84,7 @@ export default {
       this.editor.on('afterPaste', e => {
         // 编辑器粘贴结束事件
         console.log('afterPaste')
-        uploadUtil.otherUrlToDataSrc(this.editor)
+        // uploadUtil.otherUrlToDataSrc(this.editor)
       })
       this.editor.on('fileUploadRequest', async evt => {
         evt.stop()
@@ -105,6 +105,7 @@ export default {
             formData.append('signature', res.signature)
             formData.append('success_action_status', '200')
             formData.append('file', file, evt.data.requestData.upload.name)
+            console.log('xhr', xhr)
             xhr.open('POST', process.env.IMAGE_UPLOAD_URL, true)
             xhr.send(formData)
             // evt.stop()

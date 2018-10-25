@@ -4,7 +4,7 @@
     <div class="page-main">
       <div class="overview clearfix">
         <div class="account fl">账号：<span>{{overview.account.name}}</span></div>
-        <div class="circle fl">发布于“{{overview.account.name}}”群组</div>
+        <div class="circle fl">发布于“{{overview.circle.name}}”群组</div>
       </div>
       <div class="sava-tip-box">
         <div class="save-tip-content">ctrl+s可以直接保存当前填写的内容</div>
@@ -18,7 +18,7 @@
         <div class="form-item clearfix">
           <div class="form-left fl required">活动主题</div>
           <div class="form-right fl">
-            <input class="form-input form-name" v-model="form.name" placeholder="请输入活动主题，最多30个字" />
+            <input class="form-input form-name" :maxlength="30" v-model="form.name" placeholder="请输入活动主题，最多30个字" />
           </div>
         </div>
         <!-- 活动封面 -->
@@ -38,7 +38,7 @@
               <div class="cover-add fl" :class="{added: (form.cover.id && form.cover.url), loading: uploadLoading, error: uploadError}" :style="{backgroundImage: 'url(' + ((form.cover.id && form.cover.url) ? form.cover.url : '') + ')'}">
                 <div v-show="uploadLoading || uploadError" class="loading-box">
                   <loading-icon v-show="uploadLoading" class="loading-icon" :size="34"/>
-                  <p v-show="uploadError" class="loading-text" @click.stop>上传失败，重新上传</p>
+                  <p v-show="uploadError" class="loading-text">上传失败，重新上传</p>
                 </div>
                 <div v-show="!(uploadLoading || uploadError)" class="cover-btn" :class="{added: (form.cover.id && form.cover.url)}">
                   <i class="iconfont icon-camera"></i>
@@ -118,12 +118,12 @@
         <div class="form-item clearfix" style="margin-bottom: 15px;">
           <div class="form-left fl required">活动地点</div>
           <div class="form-right fl">
-            <el-radio @change="changeAddress" class="fl form-radio" v-model="form.address" label="1">线上活动</el-radio>
-            <el-radio @change="changeAddress" class="fl form-radio" v-model="form.address" label="2">线下活动</el-radio>
+            <el-radio class="fl form-radio" v-model="form.address" label="1">线上活动</el-radio>
+            <el-radio class="fl form-radio" v-model="form.address" label="2">线下活动</el-radio>
           </div>
         </div>
         <!-- 活动地图 -->
-        <div v-if="form.address.toString() === '2'" class="form-item clearfix" style="margin-top:15px;">
+        <div v-show="form.address.toString() === '2'" class="form-item clearfix" style="margin-top:15px;">
           <div class="form-left fl" style="color:transparent">活动地图</div>
           <div class="form-right fl clearfix">
             <el-select class="fl address-select" popper-class="ft-popper-4" value-key="name" style="display:none" disabled v-model="form.address_data.province" placeholder="选择省" @change="provinceChange" @focus="e => focusSelector('ft-popper-4', e)">
@@ -168,15 +168,15 @@
                   :value="item">
                 </el-option>
               </el-select> -->
-              <div class="location-search-btn fl" @click="resetMarker" :class="{disabled: !selectOptions.location}"><i class="iconfont icon-location" style="font-size:18px;margin-right:5px;vertical-align:middle;"></i><span style="vertical-align:middle">标记位置</span></div>
+              <div class="location-search-btn fl" @click="resetMarker(selectOptions.location)" :class="{disabled: !selectOptions.location}"><i class="iconfont icon-location" style="font-size:18px;margin-right:5px;vertical-align:middle;"></i><span style="vertical-align:middle">标记位置</span></div>
               <ul class="location-search-options" v-show="showLocationOptions">
-                <li class="location-search-options-content" v-show="selectOptions.location_options && selectOptions.location_options.length > 0" v-for="item in selectOptions.location_options" :key="item.id" @click="resetMarker(item, true)">{{item.name}}</li>
+                <li class="location-search-options-content" v-show="selectOptions.location_options && selectOptions.location_options.length > 0" v-for="item in selectOptions.location_options" :key="item.id" @click="resetMarker(item, true, true)">{{item.name}}</li>
                 <li class="location-search-options-content" v-show="!(selectOptions.location_options && selectOptions.location_options.length > 0)">暂无数据</li>
               </ul>
             </div>
             <div class="amap-instance-container">
               <el-amap vid="ac-location" :center="amap_data.center" :zoom="amap_data.zoom" :map-manager="amap_data.manager" :plugin="amap_data.plugin">
-                <el-amap-marker vid="location-marker" :position="location_position.point" :topWhenClick="true" :clickable="true" :draggable="true" :events="location_position.events"></el-amap-marker>
+                <el-amap-marker v-if="location_position.point" vid="location-marker" :position="location_position.point" :topWhenClick="true" :clickable="true" :draggable="true" :events="location_position.events"></el-amap-marker>
               </el-amap>
             </div>
           </div>
@@ -198,19 +198,21 @@
             <ul class="ticket-box">
               <li class="ticket-header clearfix">
                 <div class="header-name fl">票种</div>
-                <div class="header-price fl">金额</div>
+                <div class="header-price fl">金额(元)</div>
                 <div class="header-amount fl">总数</div>
                 <div class="header-btn fl">操作</div>
               </li>
               <li class="ticket-item clearfix" v-if="form.ticket_data && form.ticket_data.length > 0" v-for="item in form.ticket_data" :key="item.key">
                 <input class="ticket-name fl" placeholder="请输入票种名称，最多输入15字" v-model="item.name" :maxlength="15" />
-                <input class="ticket-price fl" placeholder="免费请填0" v-model="item.price" @keypress.stop="limitPrice" />
-                <input class="ticket-amount fl" placeholder="无限制可不填" v-model="item.amount" @keypress="limitMax" />
+                <input class="ticket-price fl" placeholder="免费请填0" v-model="item.price" @input.stop="limitInput" @keypress.stop="limitPrice" />
+                <input class="ticket-amount fl" placeholder="无限制可不填" v-model="item.amount" @input.stop="limitInput" @keypress="limitMax" />
                 <div class="ticket-btn fl"><i @click.stop="deleteTicket(item.key)" class="iconfont icon-delete delete-ticket" :title="(form.ticket_data && form.ticket_data.length === 1) ? '至少保留一个有效票种' : ''" :class="{disabled: (form.ticket_data && form.ticket_data.length <= 1)}"></i></div>
               </li>
               <li v-if="form.ticket_data && (form.ticket_data.length === 0 || form.ticket_data.length < 20)" class="ticket-bottom-btn">
                 <div @click.stop="addTicket" class="add-ticket">
-                  <div class="inner"><i class="iconfont icon-jiahao"></i>添加票种</div>
+                  <div class="inner">
+                    <div class="inner-content"><i class="iconfont icon-jiahao"></i>添加票种</div>
+                  </div>
                 </div>
               </li>
             </ul>
@@ -220,7 +222,7 @@
         <div class="form-item clearfix">
           <div class="form-left fl">限购设置</div>
           <div class="form-right fl">
-            <input class="activity-limit" placeholder="每个账号的限购数量大于0，若无限制则无需填写" v-model="form.ticket_limit" @keypress="limitMax" />
+            <input class="activity-limit" placeholder="每个账号的限购数量大于0，若无限制则无需填写" v-model="form.ticket_limit" @input.stop="limitInput" @keypress="limitMax" />
           </div>
         </div>
         <!-- 费用中是否包含保险 -->
@@ -237,14 +239,15 @@
         <!-- 报名表单设置 -->
         <div class="form-item clearfix">
           <div class="form-left fl required" style="line-height:20px;padding-left:15px;box-sizing:border-box;">报名表单设置</div>
-          <div class="form-right fl">
-            <el-checkbox-group class="user-form-list" v-model="form.form_list">
-              <el-checkbox label="phone" disabled>手机</el-checkbox>
-              <el-checkbox label="name">姓名</el-checkbox>
-              <el-checkbox label="gender">性别</el-checkbox>
-              <el-checkbox label="idcard">身份证</el-checkbox>
-              <el-checkbox label="wechat">微信号</el-checkbox>
+          <div class="form-right fl clearfix" style="width:793px">
+            <el-checkbox-group class="user-form-list fl clearfix" v-model="form.form_list">
+              <el-checkbox class="fl" label="phone" disabled>手机</el-checkbox>
+              <el-checkbox class="fl" label="name">姓名</el-checkbox>
+              <el-checkbox class="fl" label="gender">性别</el-checkbox>
+              <el-checkbox class="fl" label="idcard">身份证</el-checkbox>
+              <el-checkbox class="fl" label="wechat">微信号</el-checkbox>
             </el-checkbox-group>
+            <span class="fr" style="font-size:16px;line-height:40px;color:#bbb">(设置用户报名时的填写信息)</span>
           </div>
         </div>
         <!-- 咨询电话 -->
@@ -256,7 +259,7 @@
         </div>
       </div>
       <div class="agreement">
-        <el-checkbox class="agreement-checkbox" v-model="form.agreement" disabled>我同意<a href="#">《范团活动发布协议》</a></el-checkbox>
+        <el-checkbox class="agreement-checkbox" v-model="form.agreement" disabled>我同意<a href="https://fanttest.fantuanlife.com/h5/agreement?type=activity">《范团活动发布协议》</a></el-checkbox>
       </div>
     </div>
     <us :onlyCopyright="false" />
@@ -287,7 +290,7 @@ let amapManager = VueAMap.initAMapApiLoader({
   // 高德的key
   key: 'ba6c996137985103dfcccd5ac7457ccb',
   // 插件集合
-  plugin: ['ToolBar', 'Geolocation', 'PlaceSearch', 'Geocoder', 'DistrictSearch'],
+  plugin: ['ToolBar', 'PlaceSearch', 'Geocoder', 'DistrictSearch'],
   // ui版本号
   uiVersion: '1.0.11',
   // 高德 sdk 版本，默认为 1.4.4
@@ -371,36 +374,24 @@ export default {
         location_loading: false
       },
       location_position: {
-        point: [110.348828, 20.018737],
+        point: null,
         events: {
-          click (e) {
-            if (!self.amap_data.geocoder) { // 解析插件未初始化完成
-              return false
-            }
-            self.amap_data.geocoder.getAddress([e.lnglat.lng, e.lnglat.lat], function (status, result) {
-              if (status === 'complete' && result.info === 'OK') {
-                if (result && result.regeocode) {
-                  console.log('result.regeocode.formattedAddress', result.regeocode.formattedAddress)
-                }
-              } else {
-                self.$toast('获取位置失败！')
-              }
-            })
-          },
-          dragend (e) {
-            console.log('markerPosition', [e.lnglat.lng, e.lnglat.lat])
-            if (!self.amap_data.geocoder) { // 解析插件未初始化完成
-              return false
-            }
-            self.amap_data.geocoder.getAddress([e.lnglat.lng, e.lnglat.lat], function (status, result) {
-              if (status === 'complete' && result.info === 'OK') {
-                if (result && result.regeocode) {
-                  console.log('result.regeocode.formattedAddress', result.regeocode.formattedAddress)
-                }
-              } else {
-                self.$toast('获取经纬度失败！')
-              }
-            })
+          // click (e) {
+          //   if (!self.amap_data.geocoder) { // 解析插件未初始化完成
+          //     return false
+          //   }
+          //   self.amap_data.geocoder.getAddress([e.lnglat.lng, e.lnglat.lat], function (status, result) {
+          //     if (status === 'complete' && result.info === 'OK') {
+          //       if (result && result.regeocode) {
+          //         console.log('result.regeocode.formattedAddress', result.regeocode.formattedAddress)
+          //       }
+          //     } else {
+          //       self.$toast('获取位置失败！')
+          //     }
+          //   })
+          // },
+          dragend (e) { // 拖拽结束时，设置marker位置
+            self.location_position.point = [e.target.Uh.position.lng, e.target.Uh.position.lat]
           }
         }
       },
@@ -414,23 +405,6 @@ export default {
           events: {
             init (instance) {
               console.log('ToolBar', instance)
-            }
-          }
-        },
-        {
-          pName: 'Geolocation',
-          events: {
-            init (o) {
-              // o是高德地图定位插件实例
-              o.getCurrentPosition((status, result) => {
-                console.log('getCurrentPosition', status, result)
-                if (result && result.position) {
-                  self.amap_data.center = [result.position.lng, result.position.lat]
-                  self.location_position.point = [result.position.lng, result.position.lat]
-                  // self.loaded = true
-                  // self.$nextTick()
-                }
-              })
             }
           }
         },
@@ -498,7 +472,7 @@ export default {
         name: '',
         cover: {
           id: '',
-          url: 'https://ss0.bdstatic.com/94oJfD_bAAcT8t7mm9GUKT-xh_/timg?image&quality=100&size=b4000_4000&sec=1539487911&di=5851f925ddb548b4048be227712c12b7&src=http://imgsrc.baidu.com/imgad/pic/item/c75c10385343fbf2618015f7ba7eca8064388fb2.jpg'
+          url: ''
         },
         activity_time: {
           start: '',
@@ -534,7 +508,7 @@ export default {
     }
   },
   methods: {
-    confirmActivity (dontToast) {
+    confirmActivity (dontToast) { // 检查出编辑框外的必填项是否都已填写完全
       let { name, cover: {id, url}, activity_time: {start, end}, deadline, deadline_date: deadlineDate, address, ticket_data: ticketData, sponsor_tel: sponsorTel } = this.form
       let location = this.selectOptions.location
       const errorObj = {
@@ -583,7 +557,7 @@ export default {
       st.innerHTML = '.el-select-dropdown.' + className + '{top:' + top + 'px !important}'
       document.getElementsByTagName('body')[0].appendChild(st)
     },
-    checkContent () {
+    checkContent () { // 检查编辑框中的图片是否已上传完毕
       let editor = this.$refs['editor'].editor
       let imgs = editor.editable().find('img')
       let pass = true
@@ -626,7 +600,7 @@ export default {
       }
       return isLt10M
     },
-    httpRequest (upload) {
+    httpRequest (upload) { // oss直传图片
       console.log('httpRequest')
       const setData = async () => {
         this.uploadLoading = true
@@ -726,13 +700,7 @@ export default {
         this.$refs['deadlinePicker'].focus()
       }
     },
-    changeAddress (label) {
-      console.log('changeAddress')
-    },
-    locationMarkerChange (e) {
-      console.log('locationMarkerChange', e)
-    },
-    remoteMethod (e) {
+    remoteMethod (e) { // 实时模糊搜索地址
       let eve = e || window.event
       const query = eve.currentTarget.value
       if (this.amap_data.placesearch && query) { // 搜索服务已初始化完成 且 有需要搜索的文字
@@ -746,31 +714,35 @@ export default {
           if (result && result.info === 'OK' && result.poiList && result.poiList.count) {
             this.selectOptions.location_options = result.poiList.pois
             this.selectOptions.location = result.poiList.pois[0]
-            this.resetMarker(result.poiList.pois[0])
+            // this.resetMarker(result.poiList.pois[0])
           }
         })
       }
     },
-    resetMarker (location, resetName) {
+    resetMarker (location, resetName, dontChangePos) {
       let _location = location || this.selectOptions.location
       if (!_location) { // 没有选中的地址
         return false
       }
+      if (!this.form.address_data.location && !resetName) { // 搜索框中无搜索内容时，设置位置为空
+        this.location_position.point = null
+        return false
+      }
       const lnglat = [_location.location.lng, _location.location.lat]
       this.selectOptions.location = _location
-      this.location_position.point = lnglat
-      this.amap_data.center = lnglat
+      if (!dontChangePos) {
+        this.location_position.point = lnglat
+        this.amap_data.center = lnglat
+      }
       if (resetName) {
         this.form.address_data.location = _location.name
       }
     },
-    provinceChange (province) {
-      console.log('provinceChange', province)
+    provinceChange (province) { // 改变选中的省份时，重置城市，区/县
       this.form.address_data.city = {}
       this.form.address_data.district = {}
     },
-    cityChange (city) {
-      console.log('cityChange', city)
+    cityChange (city) { // 改变选中的城市时，重置区/县
       this.form.address_data.district = {}
       if (city) {
         this.amap_data.districtsearch.setLevel('city')
@@ -783,7 +755,7 @@ export default {
         this.selectOptions.district_list = []
       }
     },
-    addTicket () {
+    addTicket () { // 添加票种
       if (this.form.ticket_data && this.form.ticket_data.length >= 20) {
         return false
       }
@@ -792,16 +764,14 @@ export default {
       } else {
         this.form.ticket_data.push({name: '', price: '', amount: '', key: new Date().getTime()})
       }
-      console.log('this.form.ticket_data', this.form.ticket_data)
     },
-    deleteTicket (key) {
-      console.log('this.form.ticket_data')
+    deleteTicket (key) { // 删除票种
       if (!this.form.ticket_data || (this.form.ticket_data && this.form.ticket_data.length <= 1)) { // 不存在或者只有一项时，不可删除
         return false
       }
       this.form.ticket_data = this.form.ticket_data.filter(item => item.key !== key)
     },
-    limitPrice (e) {
+    limitPrice (e) { // 价格输入框输入过滤，需是最多两位小数的非负数
       let eve = e || window.event
       let oldVal = eve.currentTarget.value
       let newVal = oldVal + eve.key
@@ -810,7 +780,38 @@ export default {
         eve.returnValue = false
       }
     },
-    limitMax (e) {
+    limitInput (e) {
+      let eve = e || window.event
+      let val = eve.currentTarget.value
+      let numVal = val.replace(/[^0-9.]/ig, '')
+      let dbDotPos = numVal.indexOf('..')
+      let dotLen = numVal.match(/\.s/ig) ? numVal.match(/\./ig).length : 0
+      if (dbDotPos !== -1) {
+        numVal = numVal.substr(0, numVal.indexOf('.')).replace('.', '').substr(0, 6)
+        return false
+      } else if (dotLen > 1) {
+        let secondDotPos = numVal.indexOf('.', numVal.indexOf('.') + 1)
+        numVal = numVal.substr(0, secondDotPos).substr(0, 6)
+      } else {
+        numVal = numVal.substr(0, 6)
+      }
+      eve.currentTarget.value = numVal
+      // eve.currentTarget.value = '543'
+      // setTimeout(() => {
+      //   console.log('limitInput', val, this.form.ticket_data)
+      // }, 500)
+      // let eve = e || window.event
+      // console.log('limitDown', eve.keyCode)
+      // if ((eve.keyCode >= 48 && eve.keyCode <= 57) || (eve.keyCode >= 96 && eve.keyCode <= 105) || eve.keyCode === 8 || eve.keyCode === 110) {
+
+      // } else {
+      //   console.log('prevent')
+      //   // eve.returnValue = false
+      //   eve.preventDefault()
+      //   // return false
+      // }
+    },
+    limitMax (e) { // 限购数量，需是正整数
       let eve = e || window.event
       let oldVal = eve.currentTarget.value
       let newVal = oldVal + eve.key
@@ -821,9 +822,25 @@ export default {
     }
   },
   mounted () {
+    // 绑定ctrl+s事件
     document.addEventListener('keydown', this.saveContent, false)
+    let info = {}
+    info.token = sessionStorage.getItem('token')
+    info.userId = sessionStorage.getItem('userId')
+    info.userName = sessionStorage.getItem('userName')
+    info.circleId = sessionStorage.getItem('circleId')
+    info.circleName = sessionStorage.getItem('circleName')
+    this.overview.account.id = info.userId
+    this.overview.account.name = info.userName
+    this.overview.circle.id = info.circleId
+    this.overview.circle.name = info.circleName
+    console.log('info', info)
+    if (!info.token) { // 不存在token时重定向到首页扫码
+      this.$router.replace({name: 'ScanCode'})
+    }
   },
   beforeDestroy () {
+    // 移除ctrl+s事件
     document.removeEventListener('keydown', this.saveContent, false)
   }
 }
@@ -1322,22 +1339,29 @@ export default {
   width: 130px;
   color: #009AFF;
   margin: 0 auto;
+  overflow: hidden;
+  position: relative;
 }
 .add-ticket:hover {
   background: linear-gradient(90deg, #009AFF, #00C0FF);
   color: #fff;
 }
 .add-ticket .inner{
+  background: transparent;
+  left: 1px;
+  top: 1px;
+  bottom: 1px;
+  right: 1px;
+  vertical-align: middle;
+  position: absolute;
+}
+.add-ticket .inner-content{
   background: #fff;
   width: 100%;
   height: 100%;
-  box-sizing: border-box;
-  border: 1px solid transparent;
-  background-clip:content-box;
   border-radius: 4px;
-  vertical-align: middle;
 }
-.add-ticket:hover .inner{
+.add-ticket:hover .inner-content{
   background: transparent;
 }
 .add-ticket .icon-jiahao{
