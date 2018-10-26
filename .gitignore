@@ -13,3 +13,4 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
+/cwebassets-pc/ckeditor/dev/builder/ckbuilder
