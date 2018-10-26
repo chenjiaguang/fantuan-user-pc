@@ -40,3 +40,5 @@ config.js删除cloudservices
 /user-pc/cwebassets-pc/ckeditor/ckeditor.js
 生产环境js:
 /user-pc/cwebassets-pc/ckeditor/dev/builder/release/ckeditor/ckeditor.js
+编译生产环境js:
+/user-pc/cwebassets-pc/ckeditor/dev/builder/build.js

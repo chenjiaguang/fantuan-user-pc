@@ -86,7 +86,7 @@ export default {
       this.editor.on('afterPaste', e => {
         // 编辑器粘贴结束事件
         console.log('afterPaste')
-        // uploadUtil.otherUrlToDataSrc(this.editor)
+        uploadUtil.otherUrlToDataSrc(this.editor)
       })
       this.editor.on('fileUploadRequest', async evt => {
         evt.stop()

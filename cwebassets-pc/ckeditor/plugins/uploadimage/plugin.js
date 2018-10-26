@@ -65,7 +65,7 @@
 					img.setAttribute('src', loadingImage);
 					img.setAttribute('data-tempName', tempName);
 					console.log('setdata-tempName')
-					window.fantuanFileToDataSrc(file).then(function() {
+					window.fantuanFileToDataSrc(file).then(function(datasrc) {
 						var imgs = editor.editable().find('img')
 						for (var i = 0; i < imgs.count(); i++) {
 							var img = imgs.getItem(i)
