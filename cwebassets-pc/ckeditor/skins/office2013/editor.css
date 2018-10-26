@@ -43,9 +43,6 @@ other files.
    (e.g. display labels on specific buttons) */
 @import url("presets.css");
 
-
-@import url("notification.css");
-
 /* Important!
    To avoid showing the editor UI while its styles are still not available, the
    editor creates it with visibility:hidden. Here, we restore the UI visibility. */
