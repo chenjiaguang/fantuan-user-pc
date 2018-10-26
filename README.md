@@ -33,3 +33,10 @@ uploadimage/plugin.js 大量修改（关键）
 uploadwidget/plugin.js 取消此时使用的uploadimage
 easyimage.css 样式修改
 config.js删除cloudservices
+
+
+
+开发环境js:
+/user-pc/cwebassets-pc/ckeditor/ckeditor.js
+生产环境js:
+/user-pc/cwebassets-pc/ckeditor/dev/builder/release/ckeditor/ckeditor.js

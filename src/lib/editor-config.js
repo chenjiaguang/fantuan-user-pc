@@ -1,4 +1,11 @@
 let config = {}
+
+config.plugins = 'basicstyles,dialogui,dialog,notification,button,toolbar,clipboard,enterkey,entities,floatingspace,wysiwygarea,indent,indentlist,fakeobjects,link,list,undo,lineutils,widgetselection,widget,filetools,notificationaggregator,uploadwidget,uploadimage,imagebase,balloonpanel,balloontoolbar,xml,ajax,easyimage,panel,floatpanel,listblock,richcombo,format,font,panelbutton,colorbutton,justify,removeformat'
+config.skin = 'office2013'
+
+// Dialog windows are also simplified.
+config.removeDialogTabs = 'link:advanced'
+
 config.toolbar = [
   // Source
   ['Format', 'FontSize', 'TextColor', 'BGColor', 'Underline', 'Bold', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'RemoveFormat', 'Fantuanimage']

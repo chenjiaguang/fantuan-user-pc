@@ -573,7 +573,7 @@
 				}
 
 				function eventKey(evt){
-					let widgets = getWidgetsWithFeature( editor.widgets.instances, 'caption' );
+					var widgets = getWidgetsWithFeature( editor.widgets.instances, 'caption' );
 					CKEDITOR.tools.array.forEach( widgets, function( widget ) {
 						if (getFocusedWidget(widget.editor) === widget) {
 							if (evt.data.keyCode==13) {
@@ -585,7 +585,7 @@
 				}
 
 				function eventPaste(evt){
-					let widgets = getWidgetsWithFeature( editor.widgets.instances, 'caption' );
+					var widgets = getWidgetsWithFeature( editor.widgets.instances, 'caption' );
 					CKEDITOR.tools.array.forEach( widgets, function( widget ) {
 						if (getFocusedWidget(widget.editor) === widget) {
 							evt.data.dataValue=evt.data.dataValue.replace(/<.*?>/ig, '')
