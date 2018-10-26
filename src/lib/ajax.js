@@ -32,6 +32,7 @@ axios.interceptors.request.use(function (config) {
 })
 axios.interceptors.response.use(function (res) {
   // 对响应数据做点什么
+  console.log('res', res)
   if (res.data.msg && res.data.error !== 0 && res.data.error !== '0') {
     if (res.config.dontToast !== true) {
       toast(res.data.msg, 2000, () => { })
