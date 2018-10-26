@@ -7,8 +7,19 @@ config.toolbar = [
 
 // config.language = 'en'
 config.height = 600
-config.disallowedContent = 'a'
-config.allowedContent = true
+// config.disallowedContent = 'a'
+// config.allowedContent = true
+config.pasteFilter = null
+config.allowedContent = {
+  $1: {
+    // Use the ability to specify elements as an object.
+    elements: window.CKEDITOR.dtd,
+    attributes: true,
+    styles: true,
+    classes: true
+  }
+}
+config.disallowedContent = 'script; *[on*]'
 // config.removePlugins = 'image'
 config.extraPlugins = ['fantuanimageuploader']
 config.imageUploadUrl = process.env.IMAGE_UPLOAD_URL
