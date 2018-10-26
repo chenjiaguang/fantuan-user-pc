@@ -25,6 +25,7 @@ For a detailed explanation on how things work, check out the [guide](http://vuej
 
 ckeditor自定义源码部分
 fantuanimageuploader/*
+clipboard/plugin.js 删除剪贴板过滤
 easyimage/plugin.js 删除paste
 imagebase/plugin.js 删除paste 不执行_beginUpload 描述框大量修改
 uploadimage/plugin.js 大量修改（关键）
