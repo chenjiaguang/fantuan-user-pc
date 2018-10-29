@@ -1,17 +1,75 @@
-﻿/**
+/**
  * @license Copyright (c) 2003-2018, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see https://ckeditor.com/legal/ckeditor-oss-license
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
 CKEDITOR.editorConfig = function( config ) {
-	
-	// %REMOVE_START%
-	// The configuration options below are needed when running CKEditor from source files.
-	config.plugins = 'dialogui,dialog,about,a11yhelp,dialogadvtab,basicstyles,bidi,blockquote,notification,button,toolbar,clipboard,panelbutton,panel,floatpanel,colorbutton,colordialog,templates,menu,contextmenu,copyformatting,div,resize,elementspath,enterkey,entities,popup,filetools,filebrowser,find,fakeobjects,flash,floatingspace,listblock,richcombo,font,forms,format,horizontalrule,htmlwriter,iframe,wysiwygarea,image,indent,indentblock,indentlist,smiley,justify,menubutton,language,link,list,liststyle,magicline,maximize,newpage,pagebreak,pastetext,pastefromword,preview,print,removeformat,save,selectall,showblocks,showborders,sourcearea,specialchar,scayt,stylescombo,tab,table,tabletools,tableselection,undo,lineutils,widgetselection,widget,uploadwidget,uploadimage,wsc,imagebase,balloonpanel,balloontoolbar,xml,ajax,easyimage';
-	config.skin = 'office2013';
-	// %REMOVE_END%
-
 	// Define changes to default configuration here. For example:
 	// config.language = 'fr';
 	// config.uiColor = '#AADC6E';
+	// %REMOVE_START%
+	config.plugins =
+		'about,' +
+		'a11yhelp,' +
+		'basicstyles,' +
+		'bidi,' +
+		'blockquote,' +
+		'clipboard,' +
+		'colorbutton,' +
+		'colordialog,' +
+		'copyformatting,' +
+		'contextmenu,' +
+		'dialogadvtab,' +
+		'div,' +
+		'elementspath,' +
+		'enterkey,' +
+		'entities,' +
+		'filebrowser,' +
+		'find,' +
+		'flash,' +
+		'floatingspace,' +
+		'font,' +
+		'format,' +
+		'forms,' +
+		'horizontalrule,' +
+		'htmlwriter,' +
+		'image,' +
+		'iframe,' +
+		'indentlist,' +
+		'indentblock,' +
+		'justify,' +
+		'language,' +
+		'link,' +
+		'list,' +
+		'liststyle,' +
+		'magicline,' +
+		'maximize,' +
+		'newpage,' +
+		'pagebreak,' +
+		'pastefromword,' +
+		'pastetext,' +
+		'preview,' +
+		'print,' +
+		'removeformat,' +
+		'resize,' +
+		'save,' +
+		'selectall,' +
+		'showblocks,' +
+		'showborders,' +
+		'smiley,' +
+		'sourcearea,' +
+		'specialchar,' +
+		'stylescombo,' +
+		'tab,' +
+		'table,' +
+		'tableselection,' +
+		'tabletools,' +
+		'templates,' +
+		'toolbar,' +
+		'undo,' +
+		'uploadimage,' +
+		'wysiwygarea';
+	// %REMOVE_END%
 };
+
+// %LEAVE_UNMINIFIED% %REMOVE_LINE%

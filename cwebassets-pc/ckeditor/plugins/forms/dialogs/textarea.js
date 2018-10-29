@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @license Copyright (c) 2003-2018, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
@@ -113,9 +113,7 @@ CKEDITOR.dialog.add( 'textarea', function( editor ) {
 				'default': '',
 				accessKey: 'Q',
 				value: 'required',
-				setup: function( element ) {
-					this.setValue( element.getAttribute( 'required' ) );
-				},
+				setup: CKEDITOR.plugins.forms._setupRequiredAttribute,
 				commit: function( element ) {
 					if ( this.getValue() )
 						element.setAttribute( 'required', 'required' );

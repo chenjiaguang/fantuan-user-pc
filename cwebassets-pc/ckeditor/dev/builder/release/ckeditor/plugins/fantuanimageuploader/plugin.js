@@ -1,0 +1,1 @@
+﻿CKEDITOR.plugins.add("fantuanimageuploader",{icons:"fantuanimage",init:function(a){a.addCommand("fantuanimageupload",{exec:function(a){window.fantuanUpload()}});a.ui.addButton("Fantuanimage",{label:"上传图片",command:"fantuanimageupload",toolbar:"insert"})}});

@@ -30,6 +30,8 @@ CKEDITOR.plugins.add( 'contextmenu', {
 			$: function( editor ) {
 				this.base.call( this, editor, {
 					panel: {
+						// Allow adding custom CSS (#2202).
+						css: editor.config.contextmenu_contentsCss,
 						className: 'cke_menu_panel',
 						attributes: {
 							'aria-label': editor.lang.contextmenu.options
@@ -111,7 +113,9 @@ CKEDITOR.plugins.add( 'contextmenu', {
 				 * @param {Number} [offsetY]
 				 */
 				open: function( offsetParent, corner, offsetX, offsetY ) {
-					if ( this.editor.config.enableContextMenu === false ) {
+					// Do not open context menu if it's disabled or there is no selection in the editor (#1181).
+					if ( this.editor.config.enableContextMenu === false ||
+						this.editor.getSelection().getType() === CKEDITOR.SELECTION_NONE ) {
 						return;
 					}
 
@@ -140,8 +144,23 @@ CKEDITOR.plugins.add( 'contextmenu', {
 		} );
 
 		editor.addCommand( 'contextMenu', {
-			exec: function() {
-				editor.contextMenu.open( editor.document.getBody() );
+			exec: function( editor ) {
+				var offsetX = 0,
+					offsetY = 0,
+					ranges = editor.getSelection().getRanges(),
+					rects,
+					rect;
+
+				// When opening context menu via keystroke there is no offsetX and Y passed (#1451).
+				rects = ranges[ ranges.length - 1 ].getClientRects( editor.editable().isInline() );
+				rect = rects[ rects.length - 1 ];
+
+				if ( rect ) {
+					offsetX = rect[ editor.lang.dir === 'rtl' ? 'left' : 'right' ];
+					offsetY = rect.bottom;
+				}
+
+				editor.contextMenu.open( editor.document.getBody().getParent(), null, offsetX, offsetY );
 			}
 		} );
 
@@ -155,7 +174,9 @@ CKEDITOR.plugins.add( 'contextmenu', {
  * <kbd>Meta</kbd> (Mac) key is pressed on opening the context menu with the
  * right mouse button click or the <kbd>Menu</kbd> key.
  *
- *		config.browserContextMenuOnCtrl = false;
+ * ```javascript
+ * config.browserContextMenuOnCtrl = false;
+ * ```
  *
  * @since 3.0.2
  * @cfg {Boolean} [browserContextMenuOnCtrl=true]
@@ -166,9 +187,24 @@ CKEDITOR.plugins.add( 'contextmenu', {
  * Whether to enable the context menu. Regardless of the setting the [Context Menu](https://ckeditor.com/cke4/addon/contextmenu)
  * plugin is still loaded.
  *
- *		config.enableContextMenu = false;
+ * ```javascript
+ * config.enableContextMenu = false;
+ * ```
  *
  * @since 4.7.0
  * @cfg {Boolean} [enableContextMenu=true]
+ * @member CKEDITOR.config
+ */
+
+/**
+ * The CSS file(s) to be used to apply style to the context menu content.
+ *
+ * ```javascript
+ * config.contextmenu_contentsCss = '/css/myfile.css';
+ * config.contextmenu_contentsCss = [ '/css/myfile.css', '/css/anotherfile.css' ];
+ * ```
+ *
+ * @since 4.11.0
+ * @cfg {String/String[]} [contextmenu_contentsCss=CKEDITOR.skin.getPath( 'editor' )]
  * @member CKEDITOR.config
  */

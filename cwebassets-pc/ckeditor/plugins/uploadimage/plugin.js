@@ -61,14 +61,14 @@
 
 				fileToElement: function (file) {
 					var img = new CKEDITOR.dom.element('img');
-					let tempName = getUniqueImageFileName('jpg')
+					var tempName = getUniqueImageFileName('jpg')
 					img.setAttribute('src', loadingImage);
 					img.setAttribute('data-tempName', tempName);
 					console.log('setdata-tempName')
-					window.fantuanFileToDataSrc(file).then((datasrc) => {
-						let imgs = editor.editable().find('img')
-						for (let i = 0; i < imgs.count(); i++) {
-							let img = imgs.getItem(i)
+					window.fantuanFileToDataSrc(file).then(function(datasrc) {
+						var imgs = editor.editable().find('img')
+						for (var i = 0; i < imgs.count(); i++) {
+							var img = imgs.getItem(i)
 							if (img.getAttribute('data-tempName') == tempName) {
 								img.setAttribute('src', datasrc);
 								img.removeAttribute('data-tempName')
@@ -98,25 +98,21 @@
 						height = upload.responseData.height || $img.naturalHeight;
 
 
-					let needtofigure = this.parts.img.getAttribute('data-needtofigure')
-					if (needtofigure=="true") {
+					var needtofigure = this.parts.img.getAttribute('data-needtofigure')
+					if (needtofigure == "true") {
 						// fant-image
-						let html = `
-							<figure class="easyimage easyimage-align-left" style="width:${width}px">
-								<img src="${upload.url}" />
-							</figure>
-							`
+						var html = '<figure class="easyimage easyimage-align-left" style="width:'+width+'px"><img src="'+upload.url+'" /></figure>'
 
-						let tempDoc = document.implementation.createHTMLDocument('')
-						let temp = new CKEDITOR.dom.element(tempDoc.body)
+						var tempDoc = document.implementation.createHTMLDocument('')
+						var temp = new CKEDITOR.dom.element(tempDoc.body)
 						temp.appendHtml(html);
-						let figure = temp.find('figure');
+						var figure = temp.find('figure');
 						editor.widgets.initOn(figure, 'easyimage')
 
-						this.replaceWith(figure.$[0].outerHTML+' ');
-					}else{
-						this.parts.img.setAttribute('src',upload.url)
-						this.parts.img.setAttribute('data-cke-saved-src',upload.url)
+						this.replaceWith(figure.$[0].outerHTML + ' ');
+					} else {
+						this.parts.img.setAttribute('src', upload.url)
+						this.parts.img.setAttribute('data-cke-saved-src', upload.url)
 						this.parts.img.removeAttribute('data-cke-widget-id')
 						this.parts.img.removeAttribute('data-cke-upload-id')
 						this.parts.img.removeAttribute('data-widget')
@@ -129,27 +125,27 @@
 
 			// Handle images which are not available in the dataTransfer.
 			// This means that we need to read them from the <img src="data:..."> elements.
-			editor.on( 'paste', function( evt ) {
-				let  data = evt.data;
+			editor.on('paste', function (evt) {
+				var data = evt.data;
 				// Prevent XSS attacks.
-				let	tempDoc = document.implementation.createHTMLDocument( '' );
-				let	temp = new CKEDITOR.dom.element( tempDoc.body );
+				var tempDoc = document.implementation.createHTMLDocument('');
+				var temp = new CKEDITOR.dom.element(tempDoc.body);
 
 				// Without this isReadOnly will not works properly.
-				temp.data( 'cke-editable', 1 );
+				temp.data('cke-editable', 1);
 
-				temp.appendHtml( data.dataValue );
+				temp.appendHtml(data.dataValue);
 
-				let imgs = temp.find( 'img' );
-				let img;
+				var imgs = temp.find('img');
+				var img;
 
-				for ( let i = 0; i < imgs.count(); i++ ) {
-					img = imgs.getItem( i );
+				for (var i = 0; i < imgs.count(); i++) {
+					img = imgs.getItem(i);
 					img.removeAttribute('crossorigin')
 				}
 
 				data.dataValue = temp.getHtml();
-			},null,null,9 );
+			}, null, null, 9);
 		}
 	});
 
