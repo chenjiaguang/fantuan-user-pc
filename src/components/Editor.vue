@@ -43,7 +43,10 @@ export default {
     },
     // 打开预览
     preview () {
-      utils.preview(this.getData())
+      // 打开预览的延时需大于200(编辑器失焦时间)
+      setTimeout(() => {
+        utils.preview(this.getData())
+      }, 250)
     },
     // 获取内容字数
     getTextContentLength () {
