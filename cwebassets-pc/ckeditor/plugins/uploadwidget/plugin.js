@@ -515,7 +515,7 @@
 
 		loader.on( 'error', function() {
 			task && task.cancel();
-			editor.showNotification( loader.message, 'warning' );
+			editor.showNotification( loader.message, 'warning',5000);
 		} );
 
 		loader.on( 'abort', function() {

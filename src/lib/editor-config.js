@@ -36,5 +36,5 @@ config.imageUploadUrl = process.env.IMAGE_UPLOAD_URL
 // config.cloudServices_tokenUrl = 'xxx'
 // config.cloudServices_uploadUrl = process.env.IMAGE_UPLOAD_URL
 config.easyimage_defaultStyle = 'alignLeft'
-config.easyimage_toolbar = []
+// config.easyimage_toolbar = []
 export default config

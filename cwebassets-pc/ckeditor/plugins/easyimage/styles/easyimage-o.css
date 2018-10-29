@@ -10,7 +10,6 @@ For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
 	display: block;
 	padding: 0;
 	clear: both;
-	max-width: 100%;
 }
 
 /*
@@ -34,6 +33,21 @@ The outline is not a part of the element's dimensions. A border needs to be used
 	max-width: 100%;
 }
 
+.cke_widget_wrapper_easyimage-side, :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-side) > .easyimage-side,
+.cke_widget_wrapper_easyimage-align-right, :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-align-right) > .easyimage-align-right {
+	/*
+	The :not() selector will be used for Easy Image content ouside of the editor, for example: when the editor was destroyed.
+	See https://github.com/ckeditor/ckeditor-dev/pull/1150#discussion_r150415261 for more details.
+	*/
+	float: right;
+	max-width: 50%;
+	/*
+	In case of placement inside the parent container like a table cell, 'min-width' is needed to prevent the widget from having
+	tiny sizes. The `em` unit is used so it works well and has proper proportions to the textual content around (#1553).
+	*/
+	min-width: 10em;
+	margin-left: 1.5em;
+}
 
 /*
 Overwrite 'max-width: 50%' with 'max-width: 50vw' to prevent the native Chrome bug:
@@ -43,19 +57,16 @@ body.cke_editable > .cke_widget_wrapper_easyimage-side {
 	max-width: 50vw;
 }
 
-.cke_widget_wrapper_easyimage figure.easyimage-align-left {
-	margin-left: 0;
-	margin-right: auto;
+.cke_widget_wrapper_easyimage-align-left, :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-align-left) > .easyimage-align-left {
+	float: left;
+	max-width: 50%;
+	min-width: 10em;
+	margin-right: 1.5em;
 }
 
-.cke_widget_wrapper_easyimage figure.easyimage-align-center {
-	margin-left: auto;
-	margin-right: auto;
-}
-
-.cke_widget_wrapper_easyimage figure.easyimage-align-right {
-	margin-left: auto;
-	margin-right: 0;
+.cke_widget_wrapper_easyimage-align-center, :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-align-center) > .easyimage-align-center {
+	margin: 0 auto;
+	max-width: 90%;
 }
 
 .easyimage .cke_widget_editable {
@@ -102,7 +113,6 @@ the initial render, otherwise it would start transitioning from opacity 1 to 0.x
 	transition: opacity 0.3s ease-in-out;
 }
 
-
-.cke_widget_wrapper_easyimage{
-	margin-bottom: 6px;
+.cke_widget_wrapper_easyimage.cke_widget_wrapper_uploading figure img {
+	opacity: 0.75;
 }

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @license Copyright (c) 2003-2018, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
@@ -249,7 +249,7 @@
 
 				supportedTypes: /image\/(jpeg|png|gif|bmp)/,
 
-				loaderType: null,
+				loaderType: CKEDITOR.plugins.cloudservices.cloudServicesLoader,
 
 				progressReporterType: CKEDITOR.plugins.imagebase.progressBar,
 
@@ -388,73 +388,73 @@
 		// * FF when pasting a single image **file** from the clipboard.
 		// In both cases image gets inlined as img[src="data:"] element.
 		editor.on( 'paste', function( evt ) {
-			// if ( editor.isReadOnly ) {
-			// 	return;
-			// }
+			if ( editor.isReadOnly ) {
+				return;
+			}
 
-			// // For performance reason do not parse data if it does not contain img tag and data attribute.
-			// if ( !evt.data.dataValue.match( /<img[\s\S]+data:/i ) ) {
-			// 	return;
-			// }
+			// For performance reason do not parse data if it does not contain img tag and data attribute.
+			if ( !evt.data.dataValue.match( /<img[\s\S]+data:/i ) ) {
+				return;
+			}
 
-			// var data = evt.data,
-			// 	// Prevent XSS attacks.
-			// 	tempDoc = document.implementation.createHTMLDocument( '' ),
-			// 	temp = new CKEDITOR.dom.element( tempDoc.body ),
-			// 	easyImageDef = editor.widgets.registered.easyimage,
-			// 	widgetsFound = 0,
-			// 	widgetElement,
-			// 	imgFormat,
-			// 	imgs,
-			// 	img,
-			// 	i;
+			var data = evt.data,
+				// Prevent XSS attacks.
+				tempDoc = document.implementation.createHTMLDocument( '' ),
+				temp = new CKEDITOR.dom.element( tempDoc.body ),
+				easyImageDef = editor.widgets.registered.easyimage,
+				widgetsFound = 0,
+				widgetElement,
+				imgFormat,
+				imgs,
+				img,
+				i;
 
-			// // Without this isReadOnly will not works properly.
-			// temp.data( 'cke-editable', 1 );
+			// Without this isReadOnly will not works properly.
+			temp.data( 'cke-editable', 1 );
 
-			// temp.appendHtml( data.dataValue );
+			temp.appendHtml( data.dataValue );
 
-			// imgs = temp.find( 'img' );
+			imgs = temp.find( 'img' );
 
-			// for ( i = 0; i < imgs.count(); i++ ) {
-			// 	img = imgs.getItem( i );
+			for ( i = 0; i < imgs.count(); i++ ) {
+				img = imgs.getItem( i );
 
-			// 	// Assign src once, as it might be a big string, so there's no point in duplicating it all over the place.
-			// 	var imgSrc = img.getAttribute( 'src' ),
-			// 		// Image have to contain src=data:...
-			// 		isDataInSrc = imgSrc && imgSrc.substring( 0, 5 ) == 'data:',
-			// 		isRealObject = img.data( 'cke-realelement' ) === null;
+				// Assign src once, as it might be a big string, so there's no point in duplicating it all over the place.
+				var imgSrc = img.getAttribute( 'src' ),
+					// Image have to contain src=data:...
+					isDataInSrc = imgSrc && imgSrc.substring( 0, 5 ) == 'data:',
+					isRealObject = img.data( 'cke-realelement' ) === null;
 
-			// 	// We are not uploading images in non-editable blocks and fake objects (https://dev.ckeditor.com/ticket/13003).
-			// 	if ( isDataInSrc && isRealObject && !img.isReadOnly( 1 ) ) {
-			// 		widgetsFound++;
+				// We are not uploading images in non-editable blocks and fake objects (https://dev.ckeditor.com/ticket/13003).
+				if ( isDataInSrc && isRealObject && !img.isReadOnly( 1 ) ) {
+					widgetsFound++;
 
-			// 		if ( widgetsFound > 1 ) {
-			// 			// Change the selection to avoid overwriting last widget (as it will be focused).
-			// 			var sel = editor.getSelection(),
-			// 				ranges = sel.getRanges();
+					if ( widgetsFound > 1 ) {
+						// Change the selection to avoid overwriting last widget (as it will be focused).
+						var sel = editor.getSelection(),
+							ranges = sel.getRanges();
 
-			// 			ranges[ 0 ].enlarge( CKEDITOR.ENLARGE_ELEMENT );
-			// 			ranges[ 0 ].collapse( false );
-			// 		}
+						ranges[ 0 ].enlarge( CKEDITOR.ENLARGE_ELEMENT );
+						ranges[ 0 ].collapse( false );
+					}
 
-			// 		imgFormat = imgSrc.match( /image\/([a-z]+?);/i );
-			// 		imgFormat = ( imgFormat && imgFormat[ 1 ] ) || 'jpg';
+					imgFormat = imgSrc.match( /image\/([a-z]+?);/i );
+					imgFormat = ( imgFormat && imgFormat[ 1 ] ) || 'jpg';
 
-			// 		var loader = easyImageDef._spawnLoader( editor, imgSrc, easyImageDef );
+					var loader = easyImageDef._spawnLoader( editor, imgSrc, easyImageDef );
 
-			// 		widgetElement = easyImageDef._insertWidget( editor, easyImageDef, imgSrc, false, {
-			// 			uploadId: loader.id
-			// 		} );
+					widgetElement = easyImageDef._insertWidget( editor, easyImageDef, imgSrc, false, {
+						uploadId: loader.id
+					} );
 
-			// 		// This id will be converted into widget data by widget#init method. Once that's done the core widget
-			// 		// upload feature will take care of keeping track of the loader.
-			// 		widgetElement.data( 'cke-upload-id', loader.id );
-			// 		widgetElement.replace( img );
-			// 	}
-			// }
+					// This id will be converted into widget data by widget#init method. Once that's done the core widget
+					// upload feature will take care of keeping track of the loader.
+					widgetElement.data( 'cke-upload-id', loader.id );
+					widgetElement.replace( img );
+				}
+			}
 
-			// data.dataValue = temp.getHtml();
+			data.dataValue = temp.getHtml();
 		} );
 	}
 
@@ -533,7 +533,7 @@
 	}
 
 	CKEDITOR.plugins.add( 'easyimage', {
-		requires: 'imagebase,balloontoolbar,button,dialog',
+		requires: 'imagebase,balloontoolbar,button,dialog,cloudservices',
 		lang: 'en',
 		icons: 'easyimagefull,easyimageside,easyimagealt,easyimagealignleft,easyimagealigncenter,easyimagealignright,easyimageupload', // %REMOVE_LINE_CORE%
 		hidpi: true, // %REMOVE_LINE_CORE%
@@ -682,5 +682,5 @@
 	 * @cfg {String[]/String} [easyimage_toolbar=[ 'EasyImageFull', 'EasyImageSide', 'EasyImageAlt' ]]
 	 * @member CKEDITOR.config
 	 */
-	CKEDITOR.config.easyimage_toolbar = [ BUTTON_PREFIX + 'AlignLeft', BUTTON_PREFIX + 'AlignCenter', BUTTON_PREFIX + 'AlignRight'];
+	CKEDITOR.config.easyimage_toolbar = [ BUTTON_PREFIX + 'Full', BUTTON_PREFIX + 'Side', BUTTON_PREFIX + 'Alt' ];
 }() );
