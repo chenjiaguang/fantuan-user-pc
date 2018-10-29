@@ -126,14 +126,14 @@
         <div v-show="form.address.toString() === '2'" class="form-item clearfix" style="margin-top:15px;">
           <div class="form-left fl" style="color:transparent">活动地图</div>
           <div class="form-right fl clearfix">
-            <el-select class="fl address-select" popper-class="ft-popper-4" value-key="name" style="display:none" disabled v-model="form.address_data.province" placeholder="选择省" @change="provinceChange" @focus="e => focusSelector('ft-popper-4', e)">
+            <!-- <el-select class="fl address-select" popper-class="ft-popper-4" value-key="name" style="display:none" disabled v-model="form.address_data.province" placeholder="选择省" @change="provinceChange" @focus="e => focusSelector('ft-popper-4', e)">
               <el-option
                 v-for="item in selectOptions.province_list"
                 :key="item.name"
                 :label="item.name"
                 :value="item">
               </el-option>
-            </el-select>
+            </el-select> -->
             <el-select class="fl address-select" popper-class="ft-popper-5" value-key="name" v-model="form.address_data.city" placeholder="选择城市" @change="cityChange" @focus="e => focusSelector('ft-popper-5', e)">
               <el-option
                 v-for="item in selectOptions.city_list[form.address_data.province.name]"
@@ -204,15 +204,13 @@
               </li>
               <li class="ticket-item clearfix" v-if="form.ticket_data && form.ticket_data.length > 0" v-for="item in form.ticket_data" :key="item.key">
                 <input class="ticket-name fl" placeholder="请输入票种名称，最多输入15字" v-model="item.name" :maxlength="15" />
-                <input class="ticket-price fl" placeholder="免费请填0" v-model="item.price" @input.stop="limitInput" @keypress.stop="limitPrice" />
-                <input class="ticket-amount fl" placeholder="无限制可不填" v-model="item.amount" @input.stop="limitInput" @keypress="limitMax" />
+                <input class="ticket-price fl" placeholder="免费请填0" :maxlength="6" v-model="item.price" @input.stop="limitInput" @keypress.stop="limitPrice" />
+                <input class="ticket-amount fl" placeholder="无限制可不填" v-model="item.amount" @input.stop="limitInput" @keypress.stop="limitMax" />
                 <div class="ticket-btn fl"><i @click.stop="deleteTicket(item.key)" class="iconfont icon-delete delete-ticket" :title="(form.ticket_data && form.ticket_data.length === 1) ? '至少保留一个有效票种' : ''" :class="{disabled: (form.ticket_data && form.ticket_data.length <= 1)}"></i></div>
               </li>
               <li v-if="form.ticket_data && (form.ticket_data.length === 0 || form.ticket_data.length < 20)" class="ticket-bottom-btn">
                 <div @click.stop="addTicket" class="add-ticket">
-                  <div class="inner">
-                    <div class="inner-content"><i class="iconfont icon-jiahao"></i>添加票种</div>
-                  </div>
+                  <div class="inner"><i class="iconfont icon-jiahao"></i>添加票种</div>
                 </div>
               </li>
             </ul>
@@ -222,7 +220,7 @@
         <div class="form-item clearfix">
           <div class="form-left fl">限购设置</div>
           <div class="form-right fl">
-            <input class="activity-limit" placeholder="每个账号的限购数量大于0，若无限制则无需填写" v-model="form.ticket_limit" @input.stop="limitInput" @keypress="limitMax" />
+            <input class="activity-limit" placeholder="每个账号的限购数量大于0，若无限制则无需填写" v-model="form.ticket_limit" @input.stop="limitInput" @keypress.stop="limitMax" />
           </div>
         </div>
         <!-- 费用中是否包含保险 -->
@@ -259,7 +257,7 @@
         </div>
       </div>
       <div class="agreement">
-        <el-checkbox class="agreement-checkbox" v-model="form.agreement" disabled>我同意<a href="https://fanttest.fantuanlife.com/h5/agreement?type=activity">《范团活动发布协议》</a></el-checkbox>
+        <el-checkbox class="agreement-checkbox" v-model="form.agreement" disabled>我同意<a target="_blank" href="https://fanttest.fantuanlife.com/h5/agreement?type=activity">《范团活动发布协议》</a></el-checkbox>
       </div>
     </div>
     <us :onlyCopyright="false" />
@@ -434,31 +432,48 @@ export default {
           events: {
             init (districtsearch) {
               self.amap_data.districtsearch = districtsearch
-              self.amap_data.districtsearch.search('中国', function (status, result) {
+              // self.amap_data.districtsearch.search('中国', function (status, result) {
+              //   if (result && result.info === 'OK') {
+              //     self.selectOptions.province_list = result.districtList[0].districtList
+              //     // 固定设置为海南省
+              //     self.amap_data.districtsearch.setLevel('province')
+              //     self.selectOptions.province_list.forEach(item => {
+              //       if (item.name === '海南省') {
+              //         // 将海南省设置为默认选项
+              //         self.form.address_data.province = item
+              //       }
+              //       self.amap_data.districtsearch.search(item.name, function (status, result) {
+              //         if (result && result.info === 'OK') {
+              //           self.selectOptions.city_list[item.name] = result.districtList[0].districtList
+              //           if (item.name === '海南省') {
+              //             result.districtList[0].districtList.forEach(item => {
+              //               if (item.name === '海口市') {
+              //                 // 将海口市设置为默认选项
+              //                 self.form.address_data.city = item
+              //                 self.cityChange(item)
+              //               }
+              //             })
+              //           }
+              //         }
+              //       })
+              //     })
+              //   }
+              // })
+              self.amap_data.districtsearch.setLevel('province')
+              self.form.address_data.province.name = '海南省'
+              self.amap_data.districtsearch.search('海南省', function (status, result) {
                 if (result && result.info === 'OK') {
-                  self.selectOptions.province_list = result.districtList[0].districtList
-                  // 固定设置为海南省
-                  self.amap_data.districtsearch.setLevel('province')
-                  self.selectOptions.province_list.forEach(item => {
-                    if (item.name === '海南省') {
-                      // 将海南省设置为默认选项
-                      self.form.address_data.province = item
+                  self.selectOptions.city_list['海南省'] = result.districtList[0].districtList.sort(function (a, b) { return parseInt(a.adcode) - parseInt(b.adcode) })
+                  result.districtList[0].districtList.forEach(item => {
+                    if (item.name === '海口市') {
+                      // 将海口市设置为默认选项
+                      self.form.address_data.city = item
+                      self.cityChange(item)
                     }
-                    self.amap_data.districtsearch.search(item.name, function (status, result) {
-                      if (result && result.info === 'OK') {
-                        self.selectOptions.city_list[item.name] = result.districtList[0].districtList
-                        if (item.name === '海南省') {
-                          result.districtList[0].districtList.forEach(item => {
-                            if (item.name === '海口市') {
-                              // 将海口市设置为默认选项
-                              self.form.address_data.city = item
-                              self.cityChange(item)
-                            }
-                          })
-                        }
-                      }
-                    })
                   })
+                  setTimeout(() => {
+                    console.log('list', self.selectOptions.city_list['海南省'])
+                  }, 1000)
                 }
               })
             }
@@ -482,7 +497,9 @@ export default {
         deadline_date: '',
         address: '2',
         address_data: {
-          province: {},
+          province: {
+            name: '海南省'
+          },
           city: {},
           district: {},
           location: ''
@@ -625,7 +642,7 @@ export default {
                 'Content-Type': 'multipart/form-data'
               }
             }
-            axios.post(this.$imageUploadUrl, formData, config).then(res => {
+            axios.post(res.host, formData, config).then(res => {
               console.log('uploadSuccess', res)
               this.uploadLoading = false
               this.form.cover.id = res.data.imageId
@@ -776,8 +793,10 @@ export default {
       let oldVal = eve.currentTarget.value
       let newVal = oldVal + eve.key
       let result = /^([0]|([1-9][0-9]*)|(([0]\.\d{0,2}|[1-9][0-9]*\.\d{0,2})))$/.test(newVal)
-      if (!result) {
+      console.log('eve', eve, oldVal, newVal, result)
+      if (!result && eve.keyCode !== 8) { // keycode=8 回删键，不阻止
         eve.returnValue = false
+        eve.preventDefault && eve.preventDefault()
       }
     },
     limitInput (e) {
@@ -796,28 +815,15 @@ export default {
         numVal = numVal.substr(0, 6)
       }
       eve.currentTarget.value = numVal
-      // eve.currentTarget.value = '543'
-      // setTimeout(() => {
-      //   console.log('limitInput', val, this.form.ticket_data)
-      // }, 500)
-      // let eve = e || window.event
-      // console.log('limitDown', eve.keyCode)
-      // if ((eve.keyCode >= 48 && eve.keyCode <= 57) || (eve.keyCode >= 96 && eve.keyCode <= 105) || eve.keyCode === 8 || eve.keyCode === 110) {
-
-      // } else {
-      //   console.log('prevent')
-      //   // eve.returnValue = false
-      //   eve.preventDefault()
-      //   // return false
-      // }
     },
     limitMax (e) { // 限购数量，需是正整数
       let eve = e || window.event
       let oldVal = eve.currentTarget.value
       let newVal = oldVal + eve.key
       let result = /^[1-9]\d*$/.test(newVal)
-      if (!result) {
+      if (!result && eve.keyCode !== 8) {
         eve.returnValue = false
+        eve.preventDefault && eve.preventDefault()
       }
     }
   },
@@ -1324,44 +1330,40 @@ export default {
   top: 13px;
 }
 .ticket-bottom-btn{
-  padding: 13px 0 30px;
+  overflow: hidden;
   border-bottom: 1px solid #D2D2D2;
 }
 .add-ticket{
   background: linear-gradient(90deg, #009AFF, #00C0FF);
-  height: 40px;
+  height: 38px;
   line-height: 38px;
   text-align: center;
   border-radius: 4px;
   font-size: 16px;
   user-select: none;
   cursor: pointer;
-  width: 130px;
+  width: 128px;
+  padding: 1px;
   color: #009AFF;
   margin: 0 auto;
   overflow: hidden;
   position: relative;
+  box-sizing: content-box;
+  margin-top: 14px;
+  margin-bottom: 30px;
 }
 .add-ticket:hover {
   background: linear-gradient(90deg, #009AFF, #00C0FF);
   color: #fff;
 }
 .add-ticket .inner{
-  background: transparent;
-  left: 1px;
-  top: 1px;
-  bottom: 1px;
-  right: 1px;
-  vertical-align: middle;
-  position: absolute;
-}
-.add-ticket .inner-content{
   background: #fff;
   width: 100%;
   height: 100%;
   border-radius: 4px;
+  vertical-align: middle;
 }
-.add-ticket:hover .inner-content{
+.add-ticket:hover .inner{
   background: transparent;
 }
 .add-ticket .icon-jiahao{
@@ -1399,9 +1401,6 @@ export default {
 </style>
 
 <style>
-.el-date-table__row td:first-child, .el-date-table__row td:last-child{
-  color: #FF2B2B;
-}
 .test-box{
   width: 50px;
   height: 50px;
