@@ -106,3 +106,8 @@ the initial render, otherwise it would start transitioning from opacity 1 to 0.x
 .cke_widget_wrapper_easyimage{
 	margin-bottom: 6px;
 }
+
+.cke_upload_uploading{
+	display:block !important;
+	max-width:100%;
+}
