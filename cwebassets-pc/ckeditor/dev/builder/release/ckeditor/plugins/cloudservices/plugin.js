@@ -1,0 +1,6 @@
+﻿/*
+ Copyright (c) 2003-2018, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
+*/
+(function(){CKEDITOR.plugins.add("cloudservices",{requires:"filetools,ajax",onLoad:function(){function a(a,c,e,f){b.call(this,a,c,e);this.customToken=f}var b=CKEDITOR.fileTools.fileLoader;a.prototype=CKEDITOR.tools.extend({},b.prototype);a.prototype.upload=function(a,c){(a=a||this.editor.config.cloudServices_uploadUrl)?b.prototype.upload.call(this,a,c):CKEDITOR.error("cloudservices-no-upload-url")};CKEDITOR.plugins.cloudservices.cloudServicesLoader=a},beforeInit:function(a){var b=a.config.cloudServices_tokenUrl,
+d={token:null,REFRESH_INTERVAL:a.CLOUD_SERVICES_TOKEN_INTERVAL||36E5,refreshToken:function(){CKEDITOR.ajax.load(b,function(a){a&&(d.token=a)})},init:function(){this.refreshToken();var c=window.setInterval(this.refreshToken,this.REFRESH_INTERVAL);a.once("destroy",function(){window.clearInterval(c)})}};b?d.init():CKEDITOR.error("cloudservices-no-token-url");a.on("fileUploadRequest",function(a){},null,null,6);a.on("fileUploadResponse",function(a){})}});CKEDITOR.plugins.cloudservices={cloudServicesLoader:null}})();
