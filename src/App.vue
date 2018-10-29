@@ -15,6 +15,7 @@ export default {
 
 <style>
 #app {
+  min-width: 1200px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
