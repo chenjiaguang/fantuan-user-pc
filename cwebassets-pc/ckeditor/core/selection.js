@@ -458,10 +458,10 @@
 
 	// Creates cke_hidden_sel container and puts real selection there.
 	function hideSelection( editor, ariaLabel ) {
-		var content = ariaLabel && CKEDITOR.tools.htmlEncode( ariaLabel ) || '&nbsp;',
+		var content = '',
 			style = CKEDITOR.env.ie && CKEDITOR.env.version < 14 ? 'display:none' : 'position:fixed;top:0;left:-1000px;width:0;height:0;overflow:hidden;',
 			hiddenEl = CKEDITOR.dom.element.createFromHtml(
-				'<div data-cke-hidden-sel="1" data-cke-temp="1" style="' + style + '">'+'</div>',
+				'<div data-cke-hidden-sel="1" data-cke-temp="1" style="' + style + '">'+content+'</div>',
 				editor.document );
 
 		editor.fire( 'lockSnapshot' );

@@ -70,7 +70,8 @@ var CKBUILDER_CONFIG = {
 		'undo' : 1,
 		'uploadimage' : 1,
 		'uploadwidget' : 1,
-		'wysiwygarea' : 1
+		'wysiwygarea' : 1,
+		'magicline' : 1,
 	},
 	languages : {
 		'en' : 1,
