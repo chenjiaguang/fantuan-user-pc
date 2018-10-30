@@ -152,22 +152,6 @@
             </el-select>
             <div class="location-search-box fl clearfix">
               <input class="location-address" v-model="form.address_data.location" placeholder="请输入详细地址，例如金贸中路1号店" @input="remoteMethod" @focus="showLocationOptions = true" @click.stop />
-              <!-- <el-select
-                class="location-search-select fl"
-                value-key="id"
-                v-model="selectOptions.location"
-                filterable
-                remote
-                placeholder="请输入详细地址，例如金贸中路1号店"
-                :remote-method="remoteMethod"
-                :loading="selectOptions.location_loading">
-                <el-option
-                  v-for="item in selectOptions.location_options"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item">
-                </el-option>
-              </el-select> -->
               <div class="location-search-btn fl" @click="resetMarker(selectOptions.location)" :class="{disabled: !selectOptions.location}"><i class="iconfont icon-location" style="font-size:18px;margin-right:5px;vertical-align:middle;"></i><span style="vertical-align:middle">标记位置</span></div>
               <ul class="location-search-options" v-show="showLocationOptions">
                 <li class="location-search-options-content" v-show="selectOptions.location_options && selectOptions.location_options.length > 0" v-for="item in selectOptions.location_options" :key="item.id" @click="resetMarker(item, true, true)">{{item.name}}</li>
@@ -294,10 +278,6 @@ let amapManager = VueAMap.initAMapApiLoader({
   // 高德 sdk 版本，默认为 1.4.4
   v: '1.4.4'
 })
-// let placesearch = new VueAMap.PlaceSearch({
-//   city: '海南', // 兴趣点城市
-//   citylimit: true // 是否强制限制在设置的城市内搜索
-// })
 export default {
   data () {
     let self = this
@@ -374,20 +354,6 @@ export default {
       location_position: {
         point: null,
         events: {
-          // click (e) {
-          //   if (!self.amap_data.geocoder) { // 解析插件未初始化完成
-          //     return false
-          //   }
-          //   self.amap_data.geocoder.getAddress([e.lnglat.lng, e.lnglat.lat], function (status, result) {
-          //     if (status === 'complete' && result.info === 'OK') {
-          //       if (result && result.regeocode) {
-          //         console.log('result.regeocode.formattedAddress', result.regeocode.formattedAddress)
-          //       }
-          //     } else {
-          //       self.$toast('获取位置失败！')
-          //     }
-          //   })
-          // },
           dragend (e) { // 拖拽结束时，设置marker位置
             self.location_position.point = [e.target.Uh.position.lng, e.target.Uh.position.lat]
           }
@@ -432,48 +398,23 @@ export default {
           events: {
             init (districtsearch) {
               self.amap_data.districtsearch = districtsearch
-              // self.amap_data.districtsearch.search('中国', function (status, result) {
-              //   if (result && result.info === 'OK') {
-              //     self.selectOptions.province_list = result.districtList[0].districtList
-              //     // 固定设置为海南省
-              //     self.amap_data.districtsearch.setLevel('province')
-              //     self.selectOptions.province_list.forEach(item => {
-              //       if (item.name === '海南省') {
-              //         // 将海南省设置为默认选项
-              //         self.form.address_data.province = item
-              //       }
-              //       self.amap_data.districtsearch.search(item.name, function (status, result) {
-              //         if (result && result.info === 'OK') {
-              //           self.selectOptions.city_list[item.name] = result.districtList[0].districtList
-              //           if (item.name === '海南省') {
-              //             result.districtList[0].districtList.forEach(item => {
-              //               if (item.name === '海口市') {
-              //                 // 将海口市设置为默认选项
-              //                 self.form.address_data.city = item
-              //                 self.cityChange(item)
-              //               }
-              //             })
-              //           }
-              //         }
-              //       })
-              //     })
-              //   }
-              // })
               self.amap_data.districtsearch.setLevel('province')
               self.form.address_data.province.name = '海南省'
               self.amap_data.districtsearch.search('海南省', function (status, result) {
                 if (result && result.info === 'OK') {
                   self.selectOptions.city_list['海南省'] = result.districtList[0].districtList.sort(function (a, b) { return parseInt(a.adcode) - parseInt(b.adcode) })
-                  result.districtList[0].districtList.forEach(item => {
-                    if (item.name === '海口市') {
+                  console.log('districtsearch', self.selectOptions.city_list)
+                  if (self.form.address_data.city && self.form.address_data.city.adcode) { // 如果原来存在选中的城市、区县则保留选中项
+                    self.cityChange(self.form.address_data.city, true)
+                  } else {
+                    result.districtList[0].districtList.forEach(item => {
                       // 将海口市设置为默认选项
-                      self.form.address_data.city = item
-                      self.cityChange(item)
-                    }
-                  })
-                  setTimeout(() => {
-                    console.log('list', self.selectOptions.city_list['海南省'])
-                  }, 1000)
+                      if (item.name === '海口市' && !self.form.address_data.city.adcode) {
+                        self.form.address_data.city = item
+                        self.cityChange(item)
+                      }
+                    })
+                  }
                 }
               })
             }
@@ -502,7 +443,8 @@ export default {
           },
           city: {},
           district: {},
-          location: ''
+          location: '',
+          lnglat: null
         },
         ticket_data: [{name: '', price: '', amount: '', key: new Date().getTime()}],
         ticket_limit: '',
@@ -526,14 +468,13 @@ export default {
   },
   methods: {
     confirmActivity (dontToast) { // 检查出编辑框外的必填项是否都已填写完全
-      let { name, cover: {id, url}, activity_time: {start, end}, deadline, deadline_date: deadlineDate, address, ticket_data: ticketData, sponsor_tel: sponsorTel } = this.form
-      let location = this.selectOptions.location
+      let { name, cover: {id, url}, activity_time: {start, end}, deadline, deadline_date: deadlineDate, address, ticket_data: ticketData, sponsor_tel: sponsorTel, address_data: {location, lnglat} } = this.form
       const errorObj = {
         name: name ? '' : '请填写活动主题',
         cover: (id && url) ? '' : '请上传活动封面',
         activityTime: (start && end) ? '' : '请选择活动时间',
         deadline: (deadline.toString() === '1' || (deadline.toString() === '2' && deadlineDate)) ? '' : '请设置正确的截止时间',
-        address: (address.toString() === '1' || (address.toString() === '2' && location)) ? '' : '请填写正确的活动地点',
+        address: (address.toString() === '1' || (address.toString() === '2' && location && lnglat)) ? '' : '请标记正确的活动地点',
         ticket: (ticketData.length > 0 && ticketData.filter(item => item.name && item.name && (item.price || item.price === 0)).length === ticketData.length) ? '' : '请设置至少一种有效的票种',
         sponsorTel: sponsorTel ? '' : '请填写咨询电话'
       }
@@ -642,7 +583,7 @@ export default {
                 'Content-Type': 'multipart/form-data'
               }
             }
-            axios.post(res.host, formData, config).then(res => {
+            axios.post(this.$useHttps ? res.host.replace('http://', 'https://') : res.host, formData, config).then(res => {
               console.log('uploadSuccess', res)
               this.uploadLoading = false
               this.form.cover.id = res.data.imageId
@@ -669,8 +610,64 @@ export default {
         console.log('保存，编辑器内容为:', this.$refs['editor'].getData()) // 执行保存操作
         eve.preventDefault()
         eve.stopPropagation()
+        if (!(this.$refs['editor'].editor && this.checkContent() && sessionStorage.getItem('token'))) { // 编辑框未初始化完成、编辑框里的图片已上传完毕、用户未登录
+          return false
+        }
+        let _content = {}
+        console.log('_content', _content)
+        _content.form = JSON.parse(JSON.stringify(this.form))
+        _content.form.editorContent = this.$refs['editor'].editor.getData()
+        _content.form.activity_time = {
+          start: '',
+          end: ''
+        }
+        _content.form.deadline = '1'
+        _content.form.deadline_date = ''
+        _content.selectOptions = this.selectOptions
+
+        let rData = {
+          circleId: this.overview.circle.id,
+          token: sessionStorage.getItem('token'),
+          content: JSON.stringify(_content)
+        }
+        this.$ajax('/jv/qz/draft/activity/save', {data: rData}).then(res => {
+          console.log('保存成功', res)
+        }).catch(err => {
+          console.log('保存失败', err)
+        })
         return false
       }
+    },
+    getDraft () {
+      if (!sessionStorage.getItem('token')) { // 用户未登录
+        return false
+      }
+      let rData = {
+        token: sessionStorage.getItem('token'),
+        circleId: this.overview.circle.id
+      }
+      this.$ajax('/jv/qz/draft/activity/search', {data: rData}).then(res => {
+        if (res && res.data && !res.error) { // 获取草稿成功
+          let contentObj = JSON.parse(res.data.content)
+          console.log('contentObj', contentObj)
+          if (contentObj && contentObj.form) {
+            this.form = contentObj.form
+            if (contentObj.form.address_data && contentObj.form.address_data.city && this.amap_data.districtsearch) {
+              this.cityChange(contentObj.form.address_data.city, true)
+            }
+          }
+          if (contentObj && contentObj.selectOptions) {
+            this.selectOptions = contentObj.selectOptions
+          }
+          if (contentObj && contentObj.form && contentObj.form.editorContent) {
+            this.$refs['editor'].create(contentObj.form.editorContent)
+          }
+        } else { // 获取草稿失败
+
+        }
+      }).catch(err => {
+        console.log('获取草稿失败', err)
+      })
     },
     changeStart (date) {
       let msStart = date.getTime()
@@ -743,6 +740,7 @@ export default {
       }
       if (!this.form.address_data.location && !resetName) { // 搜索框中无搜索内容时，设置位置为空
         this.location_position.point = null
+        this.form.address_data.lnglat = null
         return false
       }
       const lnglat = [_location.location.lng, _location.location.lat]
@@ -753,14 +751,19 @@ export default {
       }
       if (resetName) {
         this.form.address_data.location = _location.name
+      } else {
+        console.log('_location', lnglat)
+        this.form.address_data.lnglat = lnglat
       }
     },
     provinceChange (province) { // 改变选中的省份时，重置城市，区/县
       this.form.address_data.city = {}
       this.form.address_data.district = {}
     },
-    cityChange (city) { // 改变选中的城市时，重置区/县
-      this.form.address_data.district = {}
+    cityChange (city, keepDistrict) { // 改变选中的城市时，重置区/县
+      if (!keepDistrict) {
+        this.form.address_data.district = {}
+      }
       if (city) {
         this.amap_data.districtsearch.setLevel('city')
         this.amap_data.districtsearch.search(city.adcode, (status, result) => {
@@ -844,6 +847,7 @@ export default {
     if (!info.token) { // 不存在token时重定向到首页扫码
       this.$router.replace({name: 'ScanCode'})
     }
+    this.getDraft()
   },
   beforeDestroy () {
     // 移除ctrl+s事件
@@ -926,6 +930,11 @@ export default {
   top: 50%;
   overflow: visible;
   z-index: 2;
+}
+@media screen and (max-width: 1200px) { /*当屏幕尺寸小于1200px时，应用下面的CSS样式*/
+  .sava-tip-box {
+    left: 600px;
+  }
 }
 .save-tip-content{
   padding: 7px 24px 7px 10px;

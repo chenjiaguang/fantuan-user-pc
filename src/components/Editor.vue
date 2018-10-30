@@ -115,7 +115,7 @@ export default {
             formData.append('success_action_status', '200')
             formData.append('file', file, evt.data.requestData.upload.name)
             console.log('xhr', xhr)
-            xhr.open('POST', process.env.IMAGE_UPLOAD_URL, true)
+            xhr.open('POST', this.$useHttps ? res.host.replace('http://', 'https://') : res.host, true)
             xhr.send(formData)
             // evt.stop()
           })
