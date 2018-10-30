@@ -557,7 +557,6 @@
 				var listeners = [];
 
 				function listener( evt ) {
-					console.log('evt1',evt.name)
 					var path = (evt.name === 'blur') ? editor.elementPath() : evt.data.path,
 						sender = path ? path.lastElement : null,
 						widgets = getWidgetsWithFeature( editor.widgets.instances, 'caption' );
@@ -568,7 +567,6 @@
 						} );
 					}
 
-					console.log('evt2',evt.name)
 					CKEDITOR.tools.array.forEach( widgets, function( widget ) {
 						widget._refreshCaption( sender );
 					} );

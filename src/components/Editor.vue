@@ -53,6 +53,7 @@ export default {
       let oldhtml = this.editor.document.getBody().getHtml()
       let description = oldhtml.replace(/<.*?>/ig, '').replace(/\u200B/g, '')
       description = utils.escape2Html(description)
+      console.log('内容', description)
       return description.length
     },
     // 上传文件回调
@@ -77,9 +78,6 @@ export default {
     },
     // 编辑器事件绑定
     handleEvent () {
-      // setInterval(() => {
-      //   this.editor.fire('imageBaseBlur')
-      // }, 1000)
       this.editor.on('change', e => {
         // 编辑器内容变化事件
         console.log('字数', this.getTextContentLength())

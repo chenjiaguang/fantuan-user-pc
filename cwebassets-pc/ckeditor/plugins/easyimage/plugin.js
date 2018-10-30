@@ -84,7 +84,6 @@
 			var cmd = new CKEDITOR.styleCommand( style );
 			cmd.contextSensitive = true;
 			cmd.refresh = createCommandRefresh( function( widget, editor, path ) {
-				console.log('createCommandRefresh')
 				return this.style.checkActive( path, editor );
 			} );
 
