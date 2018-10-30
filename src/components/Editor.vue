@@ -51,7 +51,8 @@ export default {
     // 获取内容字数
     getTextContentLength () {
       let oldhtml = this.editor.document.getBody().getHtml()
-      let description = oldhtml.replace(/<.*?>/ig, '')
+      let description = oldhtml.replace(/<.*?>/ig, '').replace(/\u200B/g, '')
+      description = utils.escape2Html(description)
       return description.length
     },
     // 上传文件回调

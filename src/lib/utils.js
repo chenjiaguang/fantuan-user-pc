@@ -5,6 +5,10 @@ export default {
       return url.replace('http://', 'https://')
     }
   },
+  escape2Html (str) {
+    var arrEntities = {'lt': '<', 'gt': '>', 'nbsp': ' ', 'amp': '&', 'quot': '"'}
+    return str.replace(/&(lt|gt|nbsp|amp|quot);/ig, function (all, t) { return arrEntities[t] })
+  },
   preview (content) {
     let win = window.open('/user-pc/cwebassets-pc/preview.html', '', 'width=375,height=667')
     if (content === undefined) { return false }
