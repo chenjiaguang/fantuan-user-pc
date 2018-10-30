@@ -557,7 +557,8 @@
 				var listeners = [];
 
 				function listener( evt ) {
-					var path = evt.name === 'blur' ? editor.elementPath() : evt.data.path,
+					console.log('evt1',evt.name)
+					var path = (evt.name === 'blur') ? editor.elementPath() : evt.data.path,
 						sender = path ? path.lastElement : null,
 						widgets = getWidgetsWithFeature( editor.widgets.instances, 'caption' );
 
@@ -567,6 +568,7 @@
 						} );
 					}
 
+					console.log('evt2',evt.name)
 					CKEDITOR.tools.array.forEach( widgets, function( widget ) {
 						widget._refreshCaption( sender );
 					} );
@@ -596,6 +598,7 @@
 
 				listeners.push( editor.on( 'selectionChange', listener , null, null, 9 ) );
 				listeners.push( editor.on( 'blur', listener ) );
+				// listeners.push( editor.on( 'beforeCommandExec', listener ) );
 				listeners.push( editor.on( 'key', eventKey, null, null, 100  ) );
 				listeners.push( editor.on( 'paste', eventPaste, null, null, 100  ) );
 			},

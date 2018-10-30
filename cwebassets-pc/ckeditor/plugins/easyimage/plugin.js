@@ -84,6 +84,7 @@
 			var cmd = new CKEDITOR.styleCommand( style );
 			cmd.contextSensitive = true;
 			cmd.refresh = createCommandRefresh( function( widget, editor, path ) {
+				console.log('createCommandRefresh')
 				return this.style.checkActive( path, editor );
 			} );
 
@@ -132,6 +133,9 @@
 				if ( getStyleNameFromCommand( evt.data.name, styles ) ) {
 					editor.forceNextSelectionCheck();
 					editor.selectionChange( true );
+					// setTimeout(() => {
+					// 	editor.fire('blur')
+					// }, 0);
 				}
 			} );
 
@@ -682,5 +686,5 @@
 	 * @cfg {String[]/String} [easyimage_toolbar=[ 'EasyImageFull', 'EasyImageSide', 'EasyImageAlt' ]]
 	 * @member CKEDITOR.config
 	 */
-	CKEDITOR.config.easyimage_toolbar = [ BUTTON_PREFIX + 'AlignLeft', BUTTON_PREFIX + 'AlignCenter', BUTTON_PREFIX + 'AlignRight'];
+	CKEDITOR.config.easyimage_toolbar = [ BUTTON_PREFIX + 'Full', BUTTON_PREFIX + 'Side',BUTTON_PREFIX + 'AlignLeft', BUTTON_PREFIX + 'AlignCenter', BUTTON_PREFIX + 'AlignRight'];
 }() );

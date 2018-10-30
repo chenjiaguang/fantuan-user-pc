@@ -241,6 +241,7 @@
 			if ( !realSel || ( !realSel.isHidden() && !isRealTableSelection( realSel, sel ) ) ) {
 				// Remove the cache from fake-selection references in use elsewhere.
 				sel.reset();
+				// this.fire( 'blur' );
 
 				// Have the code using the native selection.
 				sel = 0;
