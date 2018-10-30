@@ -1,6 +1,6 @@
 let config = {}
 
-config.plugins = 'basicstyles,dialogui,dialog,notification,button,toolbar,clipboard,enterkey,entities,floatingspace,wysiwygarea,indent,indentlist,fakeobjects,link,list,undo,lineutils,widgetselection,widget,filetools,notificationaggregator,uploadwidget,uploadimage,imagebase,balloonpanel,balloontoolbar,xml,ajax,easyimage,panel,floatpanel,listblock,richcombo,format,font,panelbutton,colorbutton,justify,removeformat'
+config.plugins = 'basicstyles,dialogui,dialog,notification,button,toolbar,clipboard,enterkey,entities,floatingspace,wysiwygarea,indent,indentlist,fakeobjects,link,list,undo,lineutils,widgetselection,widget,filetools,notificationaggregator,uploadwidget,uploadimage,imagebase,balloonpanel,balloontoolbar,xml,ajax,easyimage,panel,floatpanel,listblock,richcombo,format,font,panelbutton,colorbutton,justify,removeformat,magicline'
 config.skin = 'office2013'
 
 // Dialog windows are also simplified.
