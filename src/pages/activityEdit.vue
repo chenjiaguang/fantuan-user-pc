@@ -168,8 +168,9 @@
         <!-- 活动详情 -->
         <div class="form-item clearfix">
           <div class="form-left fl required">活动详情</div>
-          <div class="form-right fl" style="width:793px">
-            <editor ref="editor" @keydown="saveContent" />
+          <div class="form-right fl" style="width:793px;position: relative;">
+            <editor ref="editor" @keydown="saveContent" @textnumchange="textnumchange"/>
+            <div class="text-num">{{textNum}}</div>
           </div>
         </div>
       </div>
@@ -283,6 +284,7 @@ export default {
     let self = this
     console.log('imageUploadUrl', this.$imageUploadUrl)
     return {
+      textNum: '',
       showLocationOptions: false,
       upload_data: {},
       uploadLoading: false,
@@ -828,6 +830,9 @@ export default {
         eve.returnValue = false
         eve.preventDefault && eve.preventDefault()
       }
+    },
+    textnumchange (num) {
+      this.textNum = `字数：${num} / 10000`
     }
   },
   mounted () {
@@ -1406,6 +1411,13 @@ export default {
 }
 .agreement-checkbox a{
   color: #009AFF;
+}
+.text-num{
+  position: absolute;
+  top: 0;
+  right: 12px;
+  line-height: 38px;
+  font-size: 12px;
 }
 </style>
 

@@ -50,7 +50,7 @@ export default {
     let input = document.createElement('input')
     input.setAttribute('type', 'file')
     input.onchange = (e) => {
-      let file = e.path[0].files[0]
+      let file = e.currentTarget.files[0]
       callback(file)
     }
     input.click()

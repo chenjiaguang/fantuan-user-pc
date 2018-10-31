@@ -64,8 +64,12 @@ export default {
     },
     // 编辑器初始化
     create (data) {
-      this.handleInit(data)
-      this.handleEvent()
+      if (this.editor) {
+        this.setData(data)
+      } else {
+        this.handleInit(data)
+        this.handleEvent()
+      }
     },
     // 编辑器启动
     handleInit (data) {
@@ -74,19 +78,21 @@ export default {
         this.editor = null
       }
       this.editor = window.CKEDITOR.replace(this.$refs.editor, editorConfig)
-      this.editor.setData(data)
+      this.setData(data)
     },
     // 编辑器事件绑定
     handleEvent () {
       this.editor.on('change', e => {
         // 编辑器内容变化事件
-        console.log('字数', this.getTextContentLength())
+        this.$emit('textnumchange', this.getTextContentLength())
       })
       this.editor.on('contentDom', () => {
-        // 编辑器初始化完成事件
         this.editor.document.$.addEventListener('keydown', (e) => {
           this.$emit('keydown', e)
         }, false)
+        // 编辑器初始化完成事件
+
+        this.$emit('textnumchange', this.getTextContentLength())
       })
       this.editor.on('afterPaste', e => {
         // 编辑器粘贴结束事件
