@@ -16,7 +16,7 @@ export default {
   props: ['data'],
   data () {
     return {
-      fileLoaders: []
+      errorFileLoaders: []
     }
   },
   watch: {
@@ -45,8 +45,8 @@ export default {
     // 尝试把所有需要上传的图片进行上传（包括先前发生错误的）
     tryUploadAll () {
       uploadUtil.otherUrlToDataSrc(this.editor)
-      for (let i = 0; i < this.fileLoaders.length; i++) {
-        var fileLoader = this.fileLoaders[i]
+      for (let i = 0; i < this.errorFileLoaders.length; i++) {
+        var fileLoader = this.errorFileLoaders[i]
         fileLoader.upload('empty')
       }
     },
@@ -72,19 +72,19 @@ export default {
       uploadUtil.dataSrcToFantUrl(this.editor)
     },
     addFileLoader (fileLoader) {
-      let i = this.fileLoaders.findIndex((_fileLoader) => {
+      let i = this.errorFileLoaders.findIndex((_fileLoader) => {
         return _fileLoader.id === fileLoader.id
       })
       if (i !== -1) {
-        this.fileLoaders.splice(i, 1)
+        this.errorFileLoaders.splice(i, 1)
       }
     },
     removeFileLoader (fileLoader) {
-      let i = this.fileLoaders.findIndex((_fileLoader) => {
+      let i = this.errorFileLoaders.findIndex((_fileLoader) => {
         return _fileLoader.id === fileLoader.id
       })
       if (i === -1) {
-        this.fileLoaders.push(fileLoader)
+        this.errorFileLoaders.push(fileLoader)
       }
     },
     // 编辑器初始化
