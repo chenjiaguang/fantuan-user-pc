@@ -16,6 +16,7 @@ export default {
   props: ['data'],
   data () {
     return {
+      errorFileLoaders: []
     }
   },
   watch: {
@@ -41,6 +42,14 @@ export default {
     setData (data) {
       if (this.editor && this.editor.setData) this.editor.setData(data)
     },
+    // 尝试把所有需要上传的图片进行上传（包括先前发生错误的）
+    tryUploadAll () {
+      uploadUtil.otherUrlToDataSrc(this.editor)
+      for (let i = 0; i < this.errorFileLoaders.length; i++) {
+        var fileLoader = this.errorFileLoaders[i]
+        fileLoader.upload('empty')
+      }
+    },
     // 打开预览
     preview () {
       // 打开预览的延时需大于200(编辑器失焦时间)
@@ -62,10 +71,30 @@ export default {
       this.editor.insertHtml(`<img src="${datasrc}" data-needtofigure="true"/>`)
       uploadUtil.dataSrcToFantUrl(this.editor)
     },
+    addFileLoader (fileLoader) {
+      let i = this.errorFileLoaders.findIndex((_fileLoader) => {
+        return _fileLoader.id === fileLoader.id
+      })
+      if (i !== -1) {
+        this.errorFileLoaders.splice(i, 1)
+      }
+    },
+    removeFileLoader (fileLoader) {
+      let i = this.errorFileLoaders.findIndex((_fileLoader) => {
+        return _fileLoader.id === fileLoader.id
+      })
+      if (i === -1) {
+        this.errorFileLoaders.push(fileLoader)
+      }
+    },
     // 编辑器初始化
     create (data) {
-      this.handleInit(data)
-      this.handleEvent()
+      if (this.editor) {
+        this.setData(data)
+      } else {
+        this.handleInit(data)
+        this.handleEvent()
+      }
     },
     // 编辑器启动
     handleInit (data) {
@@ -74,19 +103,21 @@ export default {
         this.editor = null
       }
       this.editor = window.CKEDITOR.replace(this.$refs.editor, editorConfig)
-      this.editor.setData(data)
+      this.setData(data)
     },
     // 编辑器事件绑定
     handleEvent () {
       this.editor.on('change', e => {
         // 编辑器内容变化事件
-        console.log('字数', this.getTextContentLength())
+        this.$emit('textnumchange', this.getTextContentLength())
       })
       this.editor.on('contentDom', () => {
-        // 编辑器初始化完成事件
         this.editor.document.$.addEventListener('keydown', (e) => {
           this.$emit('keydown', e)
         }, false)
+        // 编辑器初始化完成事件
+
+        this.$emit('textnumchange', this.getTextContentLength())
       })
       this.editor.on('afterPaste', e => {
         // 编辑器粘贴结束事件
@@ -115,10 +146,12 @@ export default {
             console.log('xhr', xhr)
             xhr.open('POST', this.$useHttps ? res.host.replace('http://', 'https://') : res.host, true)
             xhr.send(formData)
+            this.addFileLoader(evt.data.fileLoader)
             // evt.stop()
           })
           .catch(err => {
             console.log(err)
+            this.removeFileLoader(evt.data.fileLoader)
           })
       })
       this.editor.on('fileUploadResponse', function (evt) {

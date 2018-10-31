@@ -168,8 +168,9 @@
         <!-- 活动详情 -->
         <div class="form-item clearfix">
           <div class="form-left fl required">活动详情</div>
-          <div class="form-right fl" style="width:793px">
-            <editor ref="editor" @keydown="saveContent" />
+          <div class="form-right fl" style="width:793px;position: relative;">
+            <editor ref="editor" @keydown="saveContent" @textnumchange="textnumchange"/>
+            <div class="text-num" :class="{'text-num-max':(textNum>10000)}">字数：{{textNum}} / 10000</div>
           </div>
         </div>
       </div>
@@ -290,6 +291,7 @@ export default {
     console.log('imageUploadUrl', this.$imageUploadUrl)
     return {
       preview_url: '',
+      textNum: 0,
       showLocationOptions: false,
       upload_data: {},
       uploadLoading: false,
@@ -888,6 +890,9 @@ export default {
         eve.returnValue = false
         eve.preventDefault && eve.preventDefault()
       }
+    },
+    textnumchange (num) {
+      this.textNum = num
     }
   },
   watch: {
@@ -1498,6 +1503,16 @@ export default {
   height: 40px;
   line-height: 40px;
   padding: 0 15px;
+}
+.text-num{
+  position: absolute;
+  top: 0;
+  right: 12px;
+  line-height: 38px;
+  font-size: 12px;
+}
+.text-num-max{
+  color: #FF4242
 }
 </style>
 
