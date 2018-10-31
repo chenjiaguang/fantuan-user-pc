@@ -170,7 +170,7 @@
           <div class="form-left fl required">活动详情</div>
           <div class="form-right fl" style="width:793px;position: relative;">
             <editor ref="editor" @keydown="saveContent" @textnumchange="textnumchange"/>
-            <div class="text-num">{{textNum}}</div>
+            <div class="text-num" :class="{'text-num-max':(textNum>10000)}">字数：{{textNum}} / 10000</div>
           </div>
         </div>
       </div>
@@ -284,7 +284,7 @@ export default {
     let self = this
     console.log('imageUploadUrl', this.$imageUploadUrl)
     return {
-      textNum: '',
+      textNum: 0,
       showLocationOptions: false,
       upload_data: {},
       uploadLoading: false,
@@ -867,7 +867,7 @@ export default {
       }
     },
     textnumchange (num) {
-      this.textNum = `字数：${num} / 10000`
+      this.textNum = num
     }
   },
   mounted () {
@@ -1453,6 +1453,9 @@ export default {
   right: 12px;
   line-height: 38px;
   font-size: 12px;
+}
+.text-num-max{
+  color: #FF4242
 }
 </style>
 
