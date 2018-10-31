@@ -245,6 +245,12 @@
       </div>
     </div>
     <us :onlyCopyright="false" />
+    <div v-if="preview_url" class="preview-wrapper">
+      <div class="preview-box">
+        <div class="preview-header clearfix"><div class="fl">预览窗口</div><div class="fr" style="cursor:pointer" @click.stop="preview_url = ''">关闭</div></div>
+        <iframe :src="preview_url" width="375" height="667" frameborder="0" style="display:block"></iframe>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -283,6 +289,7 @@ export default {
     let self = this
     console.log('imageUploadUrl', this.$imageUploadUrl)
     return {
+      preview_url: '',
       showLocationOptions: false,
       upload_data: {},
       uploadLoading: false,
@@ -472,6 +479,7 @@ export default {
         ticket_limit: '',
         has_insurance: '2',
         form_list: ['phone'],
+        sponsor_name: '',
         sponsor_tel: '',
         agreement: true,
         // editor的默认内容
@@ -555,14 +563,19 @@ export default {
           pass = false
         }
       }
+      if (!pass) {
+        this.$refs['editor'].editor.tryUploadAll && this.$refs['editor'].editor.tryUploadAll()
+      }
       return pass
     },
-    preview () {
+    preview (e) {
       console.log('预览')
       if (this.checkContent()) {
         // 预览
+        this.saveContent(e, true)
       } else {
         // 提示编辑器中有图片未上传
+        this.$toast('有未上传的图片，请稍后再试')
       }
     },
     publish () {
@@ -624,11 +637,15 @@ export default {
       }
       setData()
     },
-    saveContent (e) {
+    doSave (e) {
+      this.saveContent(e, false)
+    },
+    saveContent (e, isPreview) {
       let eve = e || window.event
       const isMac = /macintosh|mac os x/i.test(navigator.userAgent)
       const controlDown = isMac ? eve.metaKey : eve.ctrlKey
-      if (eve.keyCode.toString() === '83' && controlDown) {
+      console.log('eve', eve)
+      if (eve.type === 'click' || (eve.type !== 'click' && eve.keyCode.toString() === '83' && controlDown)) {
         console.log('保存，编辑器内容为:', this.$refs['editor'].getData()) // 执行保存操作
         eve.preventDefault()
         eve.stopPropagation()
@@ -639,12 +656,13 @@ export default {
         console.log('_content', _content)
         _content.form = JSON.parse(JSON.stringify(this.form))
         _content.form.editorContent = this.$refs['editor'].editor.getData()
-        _content.form.activity_time = {
-          start: '',
-          end: ''
-        }
-        _content.form.deadline = '1'
-        _content.form.deadline_date = ''
+        // _content.form.activity_time = {
+        //   start: '',
+        //   end: ''
+        // }
+        // _content.form.deadline = '1'
+        // _content.form.deadline_date = ''
+        _content.form.sponsor_name = this.overview.account.name
         _content.selectOptions = this.selectOptions
 
         let rData = {
@@ -653,7 +671,14 @@ export default {
           content: JSON.stringify(_content)
         }
         this.$ajax('/jv/qz/draft/activity/save', {data: rData}).then(res => {
-          console.log('保存成功', res)
+          if (res && !res.error) {
+            console.log('保存成功', res)
+            if (!isPreview) {
+              this.$toast('保存成功')
+            } else {
+              this.preview_url = 'http://192.168.1.199:8080/h5/activity/detail?isPreview=true&circleId=' + this.overview.circle.id + '&token=' + sessionStorage.getItem('token')
+            }
+          }
         }).catch(err => {
           console.log('保存失败', err)
         })
@@ -865,9 +890,18 @@ export default {
       }
     }
   },
+  watch: {
+    preview_url: function (val, oldVal) {
+      if (val) {
+        document.getElementsByTagName('body')[0].style.overflow = 'hidden'
+      } else {
+        document.getElementsByTagName('body')[0].style.overflow = 'auto'
+      }
+    }
+  },
   mounted () {
     // 绑定ctrl+s事件
-    document.addEventListener('keydown', this.saveContent, false)
+    document.addEventListener('keydown', this.doSave, false)
     let info = {}
     info.token = sessionStorage.getItem('token')
     info.userId = sessionStorage.getItem('userId')
@@ -886,7 +920,7 @@ export default {
   },
   beforeDestroy () {
     // 移除ctrl+s事件
-    document.removeEventListener('keydown', this.saveContent, false)
+    document.removeEventListener('keydown', this.doSave, false)
   }
 }
 </script>
@@ -1441,6 +1475,29 @@ export default {
 }
 .agreement-checkbox a{
   color: #009AFF;
+}
+.preview-wrapper{
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 9999;
+  top: 0;
+  left: 0;
+}
+.preview-box{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -187px;
+  margin-top: -333px;
+  min-height: 707px;
+  background: #ccc;
+}
+.preview-header{
+  height: 40px;
+  line-height: 40px;
+  padding: 0 15px;
 }
 </style>
 
