@@ -313,32 +313,51 @@ export default {
         },
         end: {
           disabledDate: (currentDate) => {
-            let start = this.form.activity_time.start
+            let _start = this.form.activity_time.start ? new Date(this.form.activity_time.start) : null
             let now = new Date()
+            if (_start) {
+              _start.setHours(0)
+              _start.setMinutes(0)
+              _start.setSeconds(0)
+              _start.setMilliseconds(0)
+            }
             now.setHours(0)
             now.setMinutes(0)
             now.setSeconds(0)
             now.setMilliseconds(0)
-            let target = start || now
+            let target = _start || now
             return currentDate.getTime() < target.getTime()
           }
         },
         deadline: {
           disabledDate: (currentDate) => {
-            let start = this.form.activity_time.start
-            let end = this.form.activity_time.end
+            let _start = this.form.activity_time.start ? new Date(this.form.activity_time.start) : null
+            let _end = this.form.activity_time.end ? new Date(this.form.activity_time.end) : null
             let now = new Date()
+            if (_start) {
+              _start.setHours(0)
+              _start.setMinutes(0)
+              _start.setSeconds(0)
+              _start.setMilliseconds(0)
+            }
+            if (_end) {
+              _end.setHours(23)
+              _end.setMinutes(59)
+              _end.setSeconds(59)
+              _end.setMilliseconds(999)
+              // _end.setTime(_end.getTime())
+            }
             now.setHours(0)
             now.setMinutes(0)
             now.setSeconds(0)
             now.setMilliseconds(0)
-            start = start || now
-            if (start && end) {
-              return (currentDate.getTime() <= start || currentDate.getTime() >= end)
-            } else if (!start && end) {
-              return currentDate.getTime() >= end
-            } else if (start && !end) {
-              return currentDate.getTime() <= start
+            _start = _start || now
+            if (_start && _end) {
+              return (currentDate.getTime() < _start.getTime() || currentDate.getTime() > _end.getTime())
+            } else if (!_start && _end) {
+              return currentDate.getTime() > _end.getTime()
+            } else if (_start && !_end) {
+              return currentDate.getTime() < _start.getTime()
             } else {
               return false
             }
@@ -406,6 +425,9 @@ export default {
                 if (result && result.info === 'OK') {
                   self.selectOptions.city_list['海南省'] = result.districtList[0].districtList.sort(function (a, b) { return parseInt(a.adcode) - parseInt(b.adcode) })
                   console.log('districtsearch', self.selectOptions.city_list)
+                  if (self.form.address_data.location && self.form.address_data.lnglat) {
+                    self.resetMarker()
+                  }
                   if (self.form.address_data.city && self.form.address_data.city.adcode) { // 如果原来存在选中的城市、区县则保留选中项
                     self.cityChange(self.form.address_data.city, true)
                   } else {
@@ -641,12 +663,14 @@ export default {
       }
     },
     getDraft () {
-      if (!sessionStorage.getItem('token')) { // 用户未登录
+      let token = sessionStorage.getItem('token')
+      let circleId = sessionStorage.getItem('circleId')
+      if (!token) { // 用户未登录
         return false
       }
       let rData = {
-        token: sessionStorage.getItem('token'),
-        circleId: this.overview.circle.id
+        token: token,
+        circleId: circleId
       }
       this.$ajax('/jv/qz/draft/activity/search', {data: rData}).then(res => {
         if (res && res.data && !res.error) { // 获取草稿成功
@@ -660,9 +684,20 @@ export default {
           }
           if (contentObj && contentObj.selectOptions) {
             this.selectOptions = contentObj.selectOptions
+            if (contentObj.form.address_data.location && contentObj.form.address_data.lnglat && this.amap_data.districtsearch) {
+
+            }
+            this.resetMarker()
           }
           if (contentObj && contentObj.form && contentObj.form.editorContent) {
-            this.$refs['editor'].create(contentObj.form.editorContent)
+            const create = () => {
+              if (this.$refs['editor'] && this.$refs['editor'].create) {
+                this.$refs['editor'].create(contentObj.form.editorContent)
+              } else {
+                setTimeout(create, 100)
+              }
+            }
+            create()
           }
         } else { // 获取草稿失败
 

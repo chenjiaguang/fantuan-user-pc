@@ -5,8 +5,6 @@
       <img class="qr-code" v-if="qrcode" :src="$apiDomain + '/jv/anonymous/login/webLoginCode/' + qrcode" alt="登录二维码" />
       <div class="scan-tip">扫描二维码</div>
       <div class="scan-sub-tip">在电脑端进行活动编辑</div>
-      <input v-model="codeDetail" style="width:80%;height:50px;border:1px solid #666;" />
-      <div>模拟登录</div>
     </div>
     <us :onlyCopyright="true" />
   </div>
@@ -18,7 +16,6 @@ import Us from '@/components/Us'
 export default {
   data () {
     return {
-      codeDetail: '',
       qrcode: ''
     }
   },
