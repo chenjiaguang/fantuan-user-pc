@@ -97,6 +97,17 @@ export default {
   width: 110px;
   color: #009AFF;
   margin: 26px 0 0 0;
+  background: linear-gradient(90deg, #009AFF, #00C0FF);
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  border-radius: 6px;
+  user-select: none;
+  cursor: pointer;
+  padding: 1px;
+  overflow: hidden;
+  position: relative;
+  box-sizing: content-box;
 }
 .publish-btn{
   width: 150px;
@@ -118,9 +129,6 @@ export default {
   background: #fff;
   width: 100%;
   height: 100%;
-  box-sizing: border-box;
-  border: 1px solid transparent;
-  background-clip:content-box;
   border-radius: 6px;
 }
 .publish-btn.disabled, .preview-btn.disabled{
