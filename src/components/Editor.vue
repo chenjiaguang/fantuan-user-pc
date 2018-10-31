@@ -16,6 +16,7 @@ export default {
   props: ['data'],
   data () {
     return {
+      fileLoaders: []
     }
   },
   watch: {
@@ -41,6 +42,14 @@ export default {
     setData (data) {
       if (this.editor && this.editor.setData) this.editor.setData(data)
     },
+    // 尝试把所有需要上传的图片进行上传（包括先前发生错误的）
+    tryUploadAll () {
+      uploadUtil.otherUrlToDataSrc(this.editor)
+      for (let i = 0; i < this.fileLoaders.length; i++) {
+        var fileLoader = this.fileLoaders[i]
+        fileLoader.upload('empty')
+      }
+    },
     // 打开预览
     preview () {
       // 打开预览的延时需大于200(编辑器失焦时间)
@@ -61,6 +70,22 @@ export default {
       let datasrc = await uploadUtil.getDataSrc(file)
       this.editor.insertHtml(`<img src="${datasrc}" data-needtofigure="true"/>`)
       uploadUtil.dataSrcToFantUrl(this.editor)
+    },
+    addFileLoader (fileLoader) {
+      let i = this.fileLoaders.findIndex((_fileLoader) => {
+        return _fileLoader.id === fileLoader.id
+      })
+      if (i !== -1) {
+        this.fileLoaders.splice(i, 1)
+      }
+    },
+    removeFileLoader (fileLoader) {
+      let i = this.fileLoaders.findIndex((_fileLoader) => {
+        return _fileLoader.id === fileLoader.id
+      })
+      if (i === -1) {
+        this.fileLoaders.push(fileLoader)
+      }
     },
     // 编辑器初始化
     create (data) {
@@ -121,10 +146,12 @@ export default {
             console.log('xhr', xhr)
             xhr.open('POST', this.$useHttps ? res.host.replace('http://', 'https://') : res.host, true)
             xhr.send(formData)
+            this.addFileLoader(evt.data.fileLoader)
             // evt.stop()
           })
           .catch(err => {
             console.log(err)
+            this.removeFileLoader(evt.data.fileLoader)
           })
       })
       this.editor.on('fileUploadResponse', function (evt) {
