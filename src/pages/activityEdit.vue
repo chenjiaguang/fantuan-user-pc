@@ -1127,7 +1127,7 @@ export default {
   box-sizing: border-box;
   border: 1px dashed #D2D2D2;
   margin: 15px auto;
-  /* background-image: url('/user-pc/cwebassets-pc/image/add_cover.png');
+  /* background-image: url('/pch5/cwebassets-pc/image/add_cover.png');
   background-repeat: no-repeat;
   background-position: center;
   background-size: 76px 67px; */
@@ -1137,12 +1137,12 @@ export default {
 }
 .cover-add:hover .cover-btn{
   border-color: #009AFF;
-  /* background-image: url('/user-pc/cwebassets-pc/image/add_cover_hover.png');
+  /* background-image: url('/pch5/cwebassets-pc/image/add_cover_hover.png');
   background-size: 72px 63px; */
 }
 .cover-add.added .cover-btn{
   border-color: transparent;
-  /* background-image: url('/user-pc/cwebassets-pc/image/add_cover_added.png');
+  /* background-image: url('/pch5/cwebassets-pc/image/add_cover_added.png');
   background-size: 76px 67px; */
   opacity: 0;
 }

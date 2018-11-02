@@ -10,7 +10,7 @@ import '@/iconfont/iconfont.css'
 // if (process.env.NODE_ENV !== 'production') { // 非正式环境包，就实例化vconsole
 //   new VConsole() // 初始化
 // }
-Vue.prototype.$assetsPublicPath = '/user-pc'
+Vue.prototype.$assetsPublicPath = '/pch5'
 Vue.prototype.$apiDomain = process.env.API_DOMAIN
 Vue.prototype.$apiDomainHttps = process.env.API_DOMAIN_HTTPS
 Vue.prototype.$imageUploadUrl = process.env.IMAGE_UPLOAD_URL

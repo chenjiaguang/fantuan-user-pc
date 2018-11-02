@@ -10,7 +10,7 @@ export default {
     return str.replace(/&(lt|gt|nbsp|amp|quot);/ig, function (all, t) { return arrEntities[t] })
   },
   preview (content) {
-    let win = window.open('/user-pc/cwebassets-pc/preview.html', '', 'width=375,height=667')
+    let win = window.open('/pch5/cwebassets-pc/preview.html', '', 'width=375,height=667')
     if (content === undefined) { return false }
     (function setContent () {
       if (!win.document.getElementById('preview')) {
