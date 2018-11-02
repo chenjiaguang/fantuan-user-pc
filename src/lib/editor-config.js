@@ -30,7 +30,7 @@ config.allowedContent = {
 config.disallowedContent = 'script; *[on*]'
 // config.removePlugins = 'image'
 config.extraPlugins = ['fantuanimageuploader']
-config.imageUploadUrl = process.env.IMAGE_UPLOAD_URL
+config.imageUploadUrl = ' '
 // config.extraAllowedContent = '*(*)' // 允许class属性
 
 // config.cloudServices_tokenUrl = 'xxx'
