@@ -47,7 +47,8 @@ export default {
       uploadUtil.otherUrlToDataSrc(this.editor)
       for (let i = 0; i < this.errorFileLoaders.length; i++) {
         var fileLoader = this.errorFileLoaders[i]
-        fileLoader.upload('empty')
+        // 随便输入一个参数（上传地址）即可
+        fileLoader.upload(' ')
       }
     },
     // 打开预览
@@ -90,9 +91,12 @@ export default {
     // 编辑器初始化
     create (data) {
       if (this.editor) {
+        // 如果编辑器已经存在，则直接写入内容
         this.setData(data)
       } else {
+        // 基本初始化
         this.handleInit(data)
+        // 事件绑定
         this.handleEvent()
       }
     },
@@ -112,16 +116,14 @@ export default {
         this.$emit('textnumchange', this.getTextContentLength())
       })
       this.editor.on('contentDom', () => {
+        // 绑定保存的按键事件
         this.editor.document.$.addEventListener('keydown', (e) => {
           this.$emit('keydown', e)
         }, false)
-        // 编辑器初始化完成事件
-
+        // 初始化计算字数
         this.$emit('textnumchange', this.getTextContentLength())
       })
       this.editor.on('afterPaste', e => {
-        // 编辑器粘贴结束事件
-        console.log('afterPaste')
         uploadUtil.otherUrlToDataSrc(this.editor)
       })
       this.editor.on('fileUploadRequest', async evt => {
