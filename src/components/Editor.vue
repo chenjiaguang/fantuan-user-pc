@@ -1,6 +1,6 @@
 <template>
   <div class="ft-editor">
-    <button @click="preview">preview</button>
+    <!-- <button @click="preview">preview</button> -->
     <div ref="editor"></div>
   </div>
 </template>
