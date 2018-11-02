@@ -29,7 +29,7 @@
               class="avatar-uploader fl"
               :disabled="uploadLoading"
               :multiple="false"
-              :action="$imageUploadUrl"
+              action=" "
               :data="upload_data"
               :drag="true"
               :show-file-list="false"
