@@ -9,7 +9,7 @@ module.exports = {
 
     // Paths
     assetsSubDirectory: 'cwebassets-pc',
-    assetsPublicPath: '/user-pc/',
+    assetsPublicPath: '/pch5/',
     proxyTable: [{
       context: ['/jv',],
       target: 'http://fanttest.fantuanlife.com',
@@ -54,7 +54,7 @@ module.exports = {
     // Paths
     assetsRoot: path.resolve(__dirname, '../temp'),
     assetsSubDirectory: 'cwebassets-pc',
-    assetsPublicPath: '/user-pc/',
+    assetsPublicPath: '/pch5/',
 
     /**
      * Source Maps
