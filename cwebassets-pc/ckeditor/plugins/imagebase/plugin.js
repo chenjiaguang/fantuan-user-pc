@@ -636,10 +636,11 @@
 						removePlaceholder( this );
 					}
 
-					setVisibility( caption, true );
-				} else if ( isEmptyOrHasPlaceholder( this ) ) {
-					removePlaceholder( this );
-					setVisibility( caption, false );
+					// setVisibility( caption, true );
+				} else {
+					addPlaceholder( this );
+					// removePlaceholder( this );
+					// setVisibility( caption, false );
 				}
 			}
 		};

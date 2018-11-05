@@ -1054,15 +1054,15 @@
 				return retval;
 
 			styleText.replace( /&quot;/g, '"' ).replace( /\s*([^:;\s]+)\s*:\s*([^;]+)\s*(?=;|$)/g, function( match, name, value ) {
-				// if ( normalize ) {
-				// 	name = name.toLowerCase();
-				// 	// Drop extra whitespacing from font-family.
-				// 	if ( name == 'font-family' )
-				// 		value = value.replace( /\s*,\s*/g, ',' );
-				// 	value = CKEDITOR.tools.trim( value );
-				// }
+				if ( normalize ) {
+					name = name.toLowerCase();
+					// Drop extra whitespacing from font-family.
+					if ( name == 'font-family' )
+						value = value.replace( /\s*,\s*/g, ',' );
+					value = CKEDITOR.tools.trim( value );
+				}
 
-				// retval[ name ] = value;
+				retval[ name ] = value;
 			} );
 			return retval;
 		},
