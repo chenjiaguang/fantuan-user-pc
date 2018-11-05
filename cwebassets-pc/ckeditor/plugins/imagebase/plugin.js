@@ -635,12 +635,13 @@
 					} else if ( !sender || ( sender.equals( caption ) && sender.data( 'cke-caption-placeholder' ) ) ) {
 						removePlaceholder( this );
 					}
-
 					// setVisibility( caption, true );
 				} else {
-					addPlaceholder( this );
-					// removePlaceholder( this );
-					// setVisibility( caption, false );
+					if ( isEmptyOrHasPlaceholder( this ) ) {
+						addPlaceholder( this );
+					}else{
+						removePlaceholder( this );
+					}
 				}
 			}
 		};
