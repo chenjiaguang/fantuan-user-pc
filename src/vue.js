@@ -13,7 +13,6 @@ import '@/iconfont/iconfont.css'
 Vue.prototype.$assetsPublicPath = '/pch5'
 Vue.prototype.$apiDomain = process.env.API_DOMAIN
 Vue.prototype.$apiDomainHttps = process.env.API_DOMAIN_HTTPS
-Vue.prototype.$imageUploadUrl = process.env.IMAGE_UPLOAD_URL
 Vue.prototype.$useHttps = process.env.HTTPS
 Vue.prototype.$locationDomain = process.env.LOCATION_DOMAIN
 Vue.prototype.$ajax = ajax
