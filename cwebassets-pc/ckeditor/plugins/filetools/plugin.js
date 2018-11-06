@@ -666,6 +666,10 @@
 
 				loader.message = loader.lang.filetools.networkError;
 				loader.changeStatus( 'error' );
+				var data = {
+					fileLoader: loader
+				}
+				loader.editor.fire( 'fileUploadError', data );
 			}
 
 			function onAbort() {

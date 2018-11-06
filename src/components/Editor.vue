@@ -1,7 +1,8 @@
 <template>
   <div class="ft-editor">
-    <!-- <button @click="preview">preview</button> -->
+    <!-- <button @click="tryUploadAll">tryUploadAll</button> -->
     <div ref="editor"></div>
+    <div class="text-num" :class="{'text-num-max':(textNum>10000)}">字数：{{textNum}} / 10000</div>
   </div>
 </template>
 <script>
@@ -16,7 +17,8 @@ export default {
   props: ['data'],
   data () {
     return {
-      errorFileLoaders: []
+      errorFileLoaders: [],
+      textNum: 0
     }
   },
   watch: {
@@ -38,6 +40,9 @@ export default {
       data = data.replace(/[\r\n]/g, '')
       return data
     },
+    textnumchange (num) {
+      this.textNum = num
+    },
     // 设置编辑器内容
     setData (data) {
       if (this.editor && this.editor.setData) this.editor.setData(data)
@@ -49,6 +54,8 @@ export default {
         var fileLoader = this.errorFileLoaders[i]
         // 随便输入一个参数（上传地址）即可
         fileLoader.upload(' ')
+        // let fileTools = window.CKEDITOR.fileTools
+        // fileTools.bindNotifications(this.editor, fileLoader)
       }
     },
     // 打开预览
@@ -72,7 +79,7 @@ export default {
       this.editor.insertHtml(`<img src="${datasrc}" data-needtofigure="true"/>`)
       uploadUtil.dataSrcToFantUrl(this.editor)
     },
-    addFileLoader (fileLoader) {
+    removeFileLoader (fileLoader) {
       let i = this.errorFileLoaders.findIndex((_fileLoader) => {
         return _fileLoader.id === fileLoader.id
       })
@@ -80,7 +87,7 @@ export default {
         this.errorFileLoaders.splice(i, 1)
       }
     },
-    removeFileLoader (fileLoader) {
+    addFileLoader (fileLoader) {
       let i = this.errorFileLoaders.findIndex((_fileLoader) => {
         return _fileLoader.id === fileLoader.id
       })
@@ -148,15 +155,15 @@ export default {
             console.log('xhr', xhr)
             xhr.open('POST', this.$useHttps ? res.host.replace('http://', 'https://') : res.host, true)
             xhr.send(formData)
-            this.addFileLoader(evt.data.fileLoader)
+            this.removeFileLoader(evt.data.fileLoader)
             // evt.stop()
           })
           .catch(err => {
             console.log(err)
-            this.removeFileLoader(evt.data.fileLoader)
+            this.addFileLoader(evt.data.fileLoader)
           })
       })
-      this.editor.on('fileUploadResponse', function (evt) {
+      this.editor.on('fileUploadResponse', (evt) => {
         evt.stop()
 
         var data = evt.data
@@ -173,6 +180,9 @@ export default {
             'default': utils.getHttpsUrl(response.data.url)
           }
         }
+      })
+      this.editor.on('fileUploadError', (evt) => {
+        this.addFileLoader(evt.data.fileLoader)
       })
     }
 
@@ -193,5 +203,15 @@ export default {
 }
 .ft-editor /deep/ .cke_path_item, .ft-editor /deep/ .cke_path_empty{
   color: #666;
+}
+.text-num{
+  position: absolute;
+  top: 0;
+  right: 12px;
+  line-height: 38px;
+  font-size: 12px;
+}
+.text-num-max{
+  color: #FF4242
 }
 </style>

@@ -71,7 +71,6 @@ export default {
     return 'image-' + window.CKEDITOR.tools.array.map(dateParts, this.padNumber).join('') + '-' + this.uniqueNameCounter + '.' + type
   },
   async otherUrlToDataSrc (editor) {
-    console.log('otherUrlToDataSrc')
     let imgs = editor.editable().find('img')
     for (let i = 0; i < imgs.count(); i++) {
       let img = imgs.getItem(i)
