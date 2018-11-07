@@ -70,48 +70,52 @@ export default {
 
     return 'image-' + window.CKEDITOR.tools.array.map(dateParts, this.padNumber).join('') + '-' + this.uniqueNameCounter + '.' + type
   },
-  async otherUrlToDataSrc (editor) {
-    let imgs = editor.editable().find('img')
-    for (let i = 0; i < imgs.count(); i++) {
-      let img = imgs.getItem(i)
-      let imgSrc = img.getAttribute('src')
-      let tempName = img.getAttribute('data-tempName')
-      if (imgSrc && imgSrc.substring(0, 5) !== 'data:' && imgSrc.indexOf('fantuanlife.com') === -1 && (!tempName)) {
-        let dataSrc = await new Promise(function (resolve, reject) {
-          let img = new Image()
-          img.crossOrigin = 'Anonymous'
-          img.onload = function () {
-            var canvas = document.createElement('CANVAS')
-            var ctx = canvas.getContext('2d')
-            var dataURL
-            canvas.height = this.height
-            canvas.width = this.width
-            ctx.drawImage(this, 0, 0)
-            dataURL = canvas.toDataURL('jpg')
-            resolve(dataURL)
-            canvas = null
-          }
-          img.src = imgSrc
-        })
-        console.log('data-cke-saved-src')
-        img.setAttribute('src', dataSrc)
-        img.setAttribute('data-cke-saved-src', dataSrc)
-      }
+  errorFileLoaders: [],
+  uploadding: false,
+  removeErrorFileLoader (fileLoader) {
+    let i = this.errorFileLoaders.findIndex((_fileLoader) => {
+      return _fileLoader.id === fileLoader.id
+    })
+    if (i !== -1) {
+      this.errorFileLoaders.splice(i, 1)
     }
-    this.dataSrcToFantUrl(editor)
   },
-  dataSrcToFantUrl (editor) {
+  addErrorFileLoader (fileLoader) {
+    let i = this.errorFileLoaders.findIndex((_fileLoader) => {
+      return _fileLoader.id === fileLoader.id
+    })
+    if (i === -1) {
+      this.errorFileLoaders.push(fileLoader)
+    }
+  },
+  // 新的触发上传使用这个入口
+  tryUploadOne (editor) {
+    if (!this.uploadding) {
+      this.uploadding = true
+      this.uploadOne(editor)
+    }
+  },
+  // 接着进行上传使用这个入口(比如在上一步成功以后)
+  uploadOne (editor) {
+    console.log('uploadOne')
+    if (this.errorFileLoaders.length) {
+      this.errorFileLoaders[0].upload(' ')
+      return
+    }
+
     let fileTools = window.CKEDITOR.fileTools
     let uploadUrl = fileTools.getUploadUrl(editor.config, 'image')
 
     let imgs = editor.editable().find('img')
-    for (let i = 0; i < imgs.count(); i++) {
+    let i
+    for (i = 0; i < imgs.count(); i++) {
       let img = imgs.getItem(i)
 
       // Assign src once, as it might be a big string, so there's no point in duplicating it all over the place.
       let imgSrc = img.getAttribute('src')
       // Image have to contain src=data:...
       let isDataInSrc = imgSrc && imgSrc.substring(0, 5) === 'data:'
+      let isOtherHostSrc = (!isDataInSrc) && imgSrc && (imgSrc.indexOf('fantuanlife.com') === -1)
       let isRealObject = img.data('cke-realelement') === null
       let tempName = img.getAttribute('data-tempName')
 
@@ -132,7 +136,37 @@ export default {
         fileTools.bindNotifications(editor, loader)
 
         editor.widgets.initOn(img, 'uploadimage')
+
+        break
+      } else if (isOtherHostSrc) {
+        let image = new Image()
+        image.crossOrigin = 'Anonymous'
+        image.onload = () => {
+          var canvas = document.createElement('CANVAS')
+          var ctx = canvas.getContext('2d')
+          canvas.height = image.height
+          canvas.width = image.width
+          ctx.drawImage(image, 0, 0)
+          var dataURL = canvas.toDataURL('jpg')
+          canvas = null
+          img.setAttribute('src', dataURL)
+          img.setAttribute('data-cke-saved-src', dataURL)
+          setTimeout(() => {
+            this.uploadOne(editor)
+          }, 0)
+        }
+        image.onerror = (e) => {
+          console.log('onerror', e)
+          // 出错中断，释放正在上传的标志
+          this.uploadding = false
+        }
+        image.src = imgSrc
+        break
       }
+    }
+    if (i === imgs.count()) {
+      // 所有图片都已处理，释放正在上传的标志
+      this.uploadding = false
     }
   }
 }

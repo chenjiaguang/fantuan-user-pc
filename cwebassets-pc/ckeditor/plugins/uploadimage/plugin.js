@@ -74,7 +74,7 @@
 								img.removeAttribute('data-tempName')
 								img.setAttribute('data-cke-saved-src', datasrc)
 								img.setAttribute('data-needtofigure', "true");
-								window.fantuanDataSrcToFantUrl(editor)
+								window.tryUploadOne(editor)
 								break;
 							}
 						}

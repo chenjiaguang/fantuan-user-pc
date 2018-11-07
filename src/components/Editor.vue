@@ -17,7 +17,6 @@ export default {
   props: ['data'],
   data () {
     return {
-      errorFileLoaders: [],
       textNum: 0
     }
   },
@@ -29,7 +28,7 @@ export default {
   mounted () {
     window.fantuanUpload = () => uploadUtil.selectFile(this.uploadFile)
     window.fantuanFileToDataSrc = (file) => uploadUtil.getDataSrc(file)
-    window.fantuanDataSrcToFantUrl = (editor) => uploadUtil.dataSrcToFantUrl(editor)
+    window.tryUploadOne = (editor) => uploadUtil.tryUploadOne(editor)
 
     this.create()
   },
@@ -46,17 +45,6 @@ export default {
     // 设置编辑器内容
     setData (data) {
       if (this.editor && this.editor.setData) this.editor.setData(data)
-    },
-    // 尝试把所有需要上传的图片进行上传（包括先前发生错误的）
-    tryUploadAll () {
-      uploadUtil.otherUrlToDataSrc(this.editor)
-      for (let i = 0; i < this.errorFileLoaders.length; i++) {
-        var fileLoader = this.errorFileLoaders[i]
-        // 随便输入一个参数（上传地址）即可
-        fileLoader.upload(' ')
-        // let fileTools = window.CKEDITOR.fileTools
-        // fileTools.bindNotifications(this.editor, fileLoader)
-      }
     },
     // 打开预览
     preview () {
@@ -77,23 +65,7 @@ export default {
     async uploadFile (file) {
       let datasrc = await uploadUtil.getDataSrc(file)
       this.editor.insertHtml(`<img src="${datasrc}" data-needtofigure="true"/>`)
-      uploadUtil.dataSrcToFantUrl(this.editor)
-    },
-    removeFileLoader (fileLoader) {
-      let i = this.errorFileLoaders.findIndex((_fileLoader) => {
-        return _fileLoader.id === fileLoader.id
-      })
-      if (i !== -1) {
-        this.errorFileLoaders.splice(i, 1)
-      }
-    },
-    addFileLoader (fileLoader) {
-      let i = this.errorFileLoaders.findIndex((_fileLoader) => {
-        return _fileLoader.id === fileLoader.id
-      })
-      if (i === -1) {
-        this.errorFileLoaders.push(fileLoader)
-      }
+      uploadUtil.tryUploadOne(this.editor)
     },
     // 编辑器初始化
     create (data) {
@@ -131,7 +103,8 @@ export default {
         this.$emit('textnumchange', this.getTextContentLength())
       })
       this.editor.on('afterPaste', e => {
-        uploadUtil.otherUrlToDataSrc(this.editor)
+        uploadUtil.tryUploadOne(this.editor)
+        // uploadUtil.otherUrlToDataSrc(this.editor)
       })
       this.editor.on('fileUploadRequest', async evt => {
         evt.stop()
@@ -152,15 +125,15 @@ export default {
             formData.append('signature', res.signature)
             formData.append('success_action_status', '200')
             formData.append('file', file, evt.data.requestData.upload.name)
-            console.log('xhr', xhr)
             xhr.open('POST', this.$useHttps ? res.host.replace('http://', 'https://') : res.host, true)
             xhr.send(formData)
-            this.removeFileLoader(evt.data.fileLoader)
             // evt.stop()
           })
           .catch(err => {
             console.log(err)
-            this.addFileLoader(evt.data.fileLoader)
+            // 出错中断，释放正在上传的标志
+            uploadUtil.uploadding = false
+            uploadUtil.addErrorFileLoader(evt.data.fileLoader)
           })
       })
       this.editor.on('fileUploadResponse', (evt) => {
@@ -174,15 +147,23 @@ export default {
           // An error occurred during upload.
           data.message = response.msg
           evt.cancel()
+          // 出错中断，释放正在上传的标志
+          uploadUtil.uploadding = false
+          uploadUtil.addErrorFileLoader(evt.data.fileLoader)
         } else {
           data.url = utils.getHttpsUrl(response.data.url)
           data.response = {
             'default': utils.getHttpsUrl(response.data.url)
           }
+          uploadUtil.removeErrorFileLoader(evt.data.fileLoader)
+          // 此时接着上传下一个 不需要使用tryUploadOne
+          uploadUtil.uploadOne(this.editor)
         }
       })
       this.editor.on('fileUploadError', (evt) => {
-        this.addFileLoader(evt.data.fileLoader)
+        // 出错中断，释放正在上传的标志
+        uploadUtil.uploadding = false
+        uploadUtil.addErrorFileLoader(evt.data.fileLoader)
       })
     }
 

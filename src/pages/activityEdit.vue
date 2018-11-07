@@ -564,7 +564,7 @@ export default {
         }
       }
       if (!pass) {
-        this.$refs['editor'].tryUploadAll && this.$refs['editor'].tryUploadAll()
+        uploadUtil.tryUploadOne(editor)
       }
       return pass
     },
