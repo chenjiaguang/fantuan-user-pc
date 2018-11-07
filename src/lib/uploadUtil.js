@@ -140,7 +140,7 @@ export default {
 
         break
       } else if (isOtherHostSrc) {
-        ajax('/jv/image/uploadbyurl?url=' + imgSrc, {
+        ajax('/jv/image/uploadbyurl?url=' + encodeURIComponent(imgSrc), {
           method: 'GET'
         }).then(res => {
           let url = res.data.image.url

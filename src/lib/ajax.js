@@ -7,7 +7,7 @@ import toast from '../components/toast'
 axios.defaults.method = 'post'
 axios.interceptors.request.use(function (config) {
   if (config.method.toUpperCase() === 'GET') {
-    axios.defaults.method = 'get'
+    config.headers.method = 'get'
   }
   if (!config.data) config.data = {}
   // 在发送请求之前做些什么
