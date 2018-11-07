@@ -1,3 +1,4 @@
+import ajax from './ajax'
 export default {
   uniqueNameCounter: 0,
   getMd5 (file) {
@@ -139,28 +140,22 @@ export default {
 
         break
       } else if (isOtherHostSrc) {
-        let image = new Image()
-        image.crossOrigin = 'Anonymous'
-        image.onload = () => {
-          var canvas = document.createElement('CANVAS')
-          var ctx = canvas.getContext('2d')
-          canvas.height = image.height
-          canvas.width = image.width
-          ctx.drawImage(image, 0, 0)
-          var dataURL = canvas.toDataURL('jpg')
-          canvas = null
-          img.setAttribute('src', dataURL)
-          img.setAttribute('data-cke-saved-src', dataURL)
-          setTimeout(() => {
-            this.uploadOne(editor)
-          }, 0)
-        }
-        image.onerror = (e) => {
-          console.log('onerror', e)
+        ajax('/jv/image/uploadbyurl?url=' + imgSrc, {
+          method: 'GET'
+        }).then(res => {
+          let url = res.data.image.url
+          if (url) {
+            img.setAttribute('src', url)
+            img.setAttribute('data-cke-saved-src', url)
+            setTimeout(() => {
+              this.uploadOne(editor)
+            }, 0)
+          }
+        }).catch(err => {
           // 出错中断，释放正在上传的标志
           this.uploadding = false
-        }
-        image.src = imgSrc
+          console.log(err)
+        })
         break
       }
     }
