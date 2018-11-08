@@ -92,7 +92,7 @@ export default {
     handleEvent () {
       this.editor.on('change', e => {
         // 编辑器内容变化事件
-        this.$emit('textnumchange', this.getTextContentLength())
+        this.textnumchange(this.getTextContentLength())
       })
       this.editor.on('contentDom', () => {
         // 绑定保存的按键事件
@@ -100,7 +100,7 @@ export default {
           this.$emit('keydown', e)
         }, false)
         // 初始化计算字数
-        this.$emit('textnumchange', this.getTextContentLength())
+        this.textnumchange(this.getTextContentLength())
       })
       this.editor.on('afterPaste', e => {
         uploadUtil.tryUploadOne(this.editor)
