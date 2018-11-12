@@ -64,7 +64,7 @@ export default {
     // 上传文件回调
     async uploadFile (file) {
       let datasrc = await uploadUtil.getDataSrc(file)
-      this.editor.insertHtml(`<img src="${datasrc}" data-needtofigure="true"/>`)
+      this.editor.insertHtml(`<img src="${datasrc}" class='fant-image'/>`)
       uploadUtil.tryUploadOne(this.editor)
     },
     // 编辑器初始化
@@ -104,66 +104,6 @@ export default {
       })
       this.editor.on('afterPaste', e => {
         uploadUtil.tryUploadOne(this.editor)
-        // uploadUtil.otherUrlToDataSrc(this.editor)
-      })
-      this.editor.on('fileUploadRequest', async evt => {
-        evt.stop()
-        let file = evt.data.requestData.upload.file
-        let md5 = await uploadUtil.getMd5(file)
-        await this.$ajax('/jv/api/sts/H5', {
-          data: {
-            md5: md5
-          }
-        })
-          .then(res => {
-            let formData = new FormData()
-            let xhr = evt.data.fileLoader.xhr
-            formData.append('key', res.dir)
-            formData.append('policy', res.policy)
-            formData.append('OSSAccessKeyId', res.accessid)
-            formData.append('callback', res.callback)
-            formData.append('signature', res.signature)
-            formData.append('success_action_status', '200')
-            formData.append('file', file, evt.data.requestData.upload.name)
-            xhr.open('POST', this.$useHttps ? res.host.replace('http://', 'https://') : res.host, true)
-            xhr.send(formData)
-            // evt.stop()
-          })
-          .catch(err => {
-            console.log(err)
-            // 出错中断，释放正在上传的标志
-            uploadUtil.uploadding = false
-            uploadUtil.addErrorFileLoader(evt.data.fileLoader)
-          })
-      })
-      this.editor.on('fileUploadResponse', (evt) => {
-        evt.stop()
-
-        var data = evt.data
-        var xhr = data.fileLoader.xhr
-        var response = JSON.parse(xhr.responseText)
-
-        if (response.msg) {
-          // An error occurred during upload.
-          data.message = response.msg
-          evt.cancel()
-          // 出错中断，释放正在上传的标志
-          uploadUtil.uploadding = false
-          uploadUtil.addErrorFileLoader(evt.data.fileLoader)
-        } else {
-          data.url = utils.getHttpsUrl(response.data.url)
-          data.response = {
-            'default': utils.getHttpsUrl(response.data.url)
-          }
-          uploadUtil.removeErrorFileLoader(evt.data.fileLoader)
-          // 此时接着上传下一个 不需要使用tryUploadOne
-          uploadUtil.uploadOne(this.editor)
-        }
-      })
-      this.editor.on('fileUploadError', (evt) => {
-        // 出错中断，释放正在上传的标志
-        uploadUtil.uploadding = false
-        uploadUtil.addErrorFileLoader(evt.data.fileLoader)
       })
     }
 

@@ -47,6 +47,30 @@ export default {
       fileReader.readAsDataURL(file)
     })
   },
+  dataToFile (data) {
+    let base64HeaderRegExp = /^data:(\S*?);base64,/
+    let contentType = data.match(base64HeaderRegExp)[1]
+    let base64Data = data.replace(base64HeaderRegExp, '')
+    let byteCharacters = atob(base64Data)
+    let byteArrays = []
+    let sliceSize = 512
+    let offset, slice, byteNumbers, i, byteArray
+
+    for (offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      slice = byteCharacters.slice(offset, offset + sliceSize)
+
+      byteNumbers = new Array(slice.length)
+      for (i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i)
+      }
+
+      byteArray = new Uint8Array(byteNumbers)
+
+      byteArrays.push(byteArray)
+    }
+
+    return new Blob(byteArrays, { type: contentType })
+  },
   selectFile (callback) {
     let input = document.createElement('input')
     input.setAttribute('type', 'file')
@@ -71,24 +95,7 @@ export default {
 
     return 'image-' + window.CKEDITOR.tools.array.map(dateParts, this.padNumber).join('') + '-' + this.uniqueNameCounter + '.' + type
   },
-  errorFileLoaders: [],
   uploadding: false,
-  removeErrorFileLoader (fileLoader) {
-    let i = this.errorFileLoaders.findIndex((_fileLoader) => {
-      return _fileLoader.id === fileLoader.id
-    })
-    if (i !== -1) {
-      this.errorFileLoaders.splice(i, 1)
-    }
-  },
-  addErrorFileLoader (fileLoader) {
-    let i = this.errorFileLoaders.findIndex((_fileLoader) => {
-      return _fileLoader.id === fileLoader.id
-    })
-    if (i === -1) {
-      this.errorFileLoaders.push(fileLoader)
-    }
-  },
   // 新的触发上传使用这个入口
   tryUploadOne (editor) {
     if (!this.uploadding) {
@@ -98,46 +105,50 @@ export default {
   },
   // 接着进行上传使用这个入口(比如在上一步成功以后)
   uploadOne (editor) {
-    console.log('uploadOne')
-    if (this.errorFileLoaders.length) {
-      this.errorFileLoaders[0].upload(' ')
-      return
-    }
-
-    let fileTools = window.CKEDITOR.fileTools
-    let uploadUrl = fileTools.getUploadUrl(editor.config, 'image')
-
     let imgs = editor.editable().find('img')
     let i
     for (i = 0; i < imgs.count(); i++) {
       let img = imgs.getItem(i)
 
-      // Assign src once, as it might be a big string, so there's no point in duplicating it all over the place.
       let imgSrc = img.getAttribute('src')
-      // Image have to contain src=data:...
       let isDataInSrc = imgSrc && imgSrc.substring(0, 5) === 'data:'
       let isOtherHostSrc = (!isDataInSrc) && imgSrc && (imgSrc.indexOf('fantuanlife.com') === -1)
-      let isRealObject = img.data('cke-realelement') === null
       let tempName = img.getAttribute('data-tempName')
 
-      // We are not uploading images in non-editable blocs and fake objects (https://dev.ckeditor.com/ticket/13003).
-      if (isDataInSrc && isRealObject && !img.data('cke-upload-id') && !img.isReadOnly(1) && !tempName) {
-        // Note that normally we'd extract this logic into a separate function, but we should not duplicate this string, as it might
-        // be large.
-        let imgFormat = imgSrc.match(/image\/([a-z]+?);/i)
-        let loader
-
-        imgFormat = (imgFormat && imgFormat[1]) || 'jpg'
-
-        loader = editor.uploadRepository.create(imgSrc, this.getUniqueImageFileName(imgFormat))
-        loader.upload(uploadUrl)
-
-        fileTools.markElement(img, 'uploadimage', loader.id)
-
-        fileTools.bindNotifications(editor, loader)
-
-        editor.widgets.initOn(img, 'uploadimage')
-
+      if (isDataInSrc && !tempName) {
+        let file = this.dataToFile(imgSrc)
+        this.getMd5(file).then((md5) => {
+          ajax('/jv/api/sts/H5', {
+            data: {
+              md5: md5
+            }
+          })
+            .then(res => {
+              let imgFormat = imgSrc.match(/image\/([a-z]+?);/i)
+              imgFormat = (imgFormat && imgFormat[1]) || 'jpg'
+              let formData = new FormData()
+              formData.append('key', res.dir)
+              formData.append('policy', res.policy)
+              formData.append('OSSAccessKeyId', res.accessid)
+              formData.append('callback', res.callback)
+              formData.append('signature', res.signature)
+              formData.append('success_action_status', '200')
+              formData.append('file', file, this.getUniqueImageFileName(imgFormat))
+              ajax(this.$useHttps ? res.host.replace('http://', 'https://') : res.host, {
+                data: formData
+              }).then((uploadRes) => {
+                img.setAttribute('src', uploadRes.data.url)
+                img.setAttribute('data-cke-saved-src', uploadRes.data.url)
+                setTimeout(() => {
+                  this.uploadOne(editor)
+                }, 0)
+              })
+            })
+        }).catch(err => {
+          console.log(err)
+          // 出错中断，释放正在上传的标志
+          this.uploadding = false
+        })
         break
       } else if (isOtherHostSrc) {
         ajax('/jv/image/uploadbyurl?url=' + encodeURIComponent(imgSrc), {

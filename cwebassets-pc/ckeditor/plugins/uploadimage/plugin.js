@@ -64,8 +64,9 @@
 					var tempName = getUniqueImageFileName('jpg')
 					img.setAttribute('src', loadingImage);
 					img.setAttribute('data-tempName', tempName);
+					img.addClass('fant-image')
 					console.log('setdata-tempName')
-					window.fantuanFileToDataSrc(file).then(function(datasrc) {
+					window.fantuanFileToDataSrc(file).then(function (datasrc) {
 						var imgs = editor.editable().find('img')
 						for (var i = 0; i < imgs.count(); i++) {
 							var img = imgs.getItem(i)
@@ -73,7 +74,6 @@
 								img.setAttribute('src', datasrc);
 								img.removeAttribute('data-tempName')
 								img.setAttribute('data-cke-saved-src', datasrc)
-								img.setAttribute('data-needtofigure', "true");
 								window.tryUploadOne(editor)
 								break;
 							}
@@ -98,28 +98,15 @@
 						height = upload.responseData.height || $img.naturalHeight;
 
 
-					var needtofigure = this.parts.img.getAttribute('data-needtofigure')
-					if (needtofigure == "true") {
-						// fant-image
-						var html = '<figure class="easyimage easyimage-align-left" style="width:'+width+'px"><img src="'+upload.url+'" /></figure>'
 
-						var tempDoc = document.implementation.createHTMLDocument('')
-						var temp = new CKEDITOR.dom.element(tempDoc.body)
-						temp.appendHtml(html);
-						var figure = temp.find('figure');
-						editor.widgets.initOn(figure, 'easyimage')
-
-						this.replaceWith(figure.$[0].outerHTML + ' ');
-					} else {
-						this.parts.img.setAttribute('src', upload.url)
-						this.parts.img.setAttribute('data-cke-saved-src', upload.url)
-						this.parts.img.removeAttribute('data-cke-widget-id')
-						this.parts.img.removeAttribute('data-cke-upload-id')
-						this.parts.img.removeAttribute('data-widget')
-						this.parts.img.removeAttribute('data-cke-widget-keep-attr')
-						this.parts.img.removeAttribute('data-cke-widget-data')
-						this.replaceWith(this.parts.img.$.outerHTML);
-					}
+					this.parts.img.setAttribute('src', upload.url)
+					this.parts.img.setAttribute('data-cke-saved-src', upload.url)
+					this.parts.img.removeAttribute('data-cke-widget-id')
+					this.parts.img.removeAttribute('data-cke-upload-id')
+					this.parts.img.removeAttribute('data-widget')
+					this.parts.img.removeAttribute('data-cke-widget-keep-attr')
+					this.parts.img.removeAttribute('data-cke-widget-data')
+					this.replaceWith(this.parts.img.$.outerHTML);
 				}
 			});
 
