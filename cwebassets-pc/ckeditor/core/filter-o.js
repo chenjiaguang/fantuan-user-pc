@@ -1483,7 +1483,7 @@
 
 		// Parse classes and styles if that hasn't been done before.
 		if ( !element.styles )
-			element.styles = CKEDITOR.tools.parseCssTextSpeed( styles || '', 1 );
+			element.styles = CKEDITOR.tools.parseCssText( styles || '', 1 );
 		if ( !element.classes )
 			element.classes = classes ? classes.split( /\s+/ ) : [];
 	}

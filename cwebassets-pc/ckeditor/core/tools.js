@@ -1053,6 +1053,46 @@
 			if ( !styleText || styleText == ';' )
 				return retval;
 
+			styleText.replace( /&quot;/g, '"' ).replace( /\s*([^:;\s]+)\s*:\s*([^;]+)\s*(?=;|$)/g, function( match, name, value ) {
+				if ( normalize ) {
+					name = name.toLowerCase();
+					// Drop extra whitespacing from font-family.
+					if ( name == 'font-family' )
+						value = value.replace( /\s*,\s*/g, ',' );
+					value = CKEDITOR.tools.trim( value );
+				}
+				retval[ name ] = value;
+			} );
+			return retval;
+		},
+		/**
+		 * Turns inline style text properties into one hash.
+		 *
+		 * @param {String} styleText The style data to be parsed.
+		 * @param {Boolean} [normalize=false] Normalize properties and values
+		 * (e.g. trim spaces, convert to lower case).
+		 * @param {Boolean} [nativeNormalize=false] Parse the data using the browser.
+		 * @returns {Object} The object containing parsed properties.
+		 */
+		parseCssTextSpeed: function( styleText, normalize, nativeNormalize ) {
+			var retval = {};
+
+			if ( nativeNormalize ) {
+				// Injects the style in a temporary span object, so the browser parses it,
+				// retrieving its final format.
+				var temp = new CKEDITOR.dom.element( 'span' );
+				styleText = temp.setAttribute( 'style', styleText ).getAttribute( 'style' ) || '';
+			}
+
+			// Normalize colors.
+			if ( styleText ) {
+				styleText = CKEDITOR.tools.normalizeHex( CKEDITOR.tools.convertRgbToHex( styleText ) );
+			}
+
+			// IE will leave a single semicolon when failed to parse the style text. (https://dev.ckeditor.com/ticket/3891)
+			if ( !styleText || styleText == ';' )
+				return retval;
+
 			styleText.replace( /&quot;/g, '"' );
 			return retval;
 		},
