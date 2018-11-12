@@ -103,6 +103,11 @@ export default {
       this.uploadOne(editor)
     }
   },
+  isDataInSrcImageCanUpload (imgElement) {
+    let tempName = imgElement.getAttribute('data-tempName')
+    let isDragIcon = imgElement.hasClass('cke_widget_drag_handler')
+    return (!tempName) && (!isDragIcon)
+  },
   // 接着进行上传使用这个入口(比如在上一步成功以后)
   uploadOne (editor) {
     let imgs = editor.editable().find('img')
@@ -113,9 +118,8 @@ export default {
       let imgSrc = img.getAttribute('src')
       let isDataInSrc = imgSrc && imgSrc.substring(0, 5) === 'data:'
       let isOtherHostSrc = (!isDataInSrc) && imgSrc && (imgSrc.indexOf('fantuanlife.com') === -1)
-      let tempName = img.getAttribute('data-tempName')
 
-      if (isDataInSrc && !tempName) {
+      if (isDataInSrc && this.isDataInSrcImageCanUpload(img)) {
         let file = this.dataToFile(imgSrc)
         this.getMd5(file).then((md5) => {
           ajax('/jv/api/sts/H5', {
@@ -174,5 +178,28 @@ export default {
       // 所有图片都已处理，释放正在上传的标志
       this.uploadding = false
     }
+  },
+  // 是否可以保存或提交
+  checkContent (editor) {
+    let imgs = editor.editable().find('img')
+    let pass = true
+    for (let i = 0; i < imgs.count(); i++) {
+      let img = imgs.getItem(i)
+      // Assign src once, as it might be a big string, so there's no point in duplicating it all over the place.
+      let imgSrc = img.getAttribute('src')
+      // Image have to contain src=data:...
+      let isDataInSrc = imgSrc && imgSrc.substring(0, 5) === 'data:'
+      // 是否拖拽按钮
+      let canUpload = this.isDataInSrcImageCanUpload(img)
+      let isFantuan = imgSrc.indexOf('fantuanlife.com') !== -1
+      if ((isDataInSrc && canUpload) || (!isDataInSrc && !isFantuan)) {
+        pass = false
+        break
+      }
+    }
+    if (!pass) {
+      this.tryUploadOne(editor)
+    }
+    return pass
   }
 }

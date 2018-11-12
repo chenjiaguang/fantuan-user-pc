@@ -207,6 +207,6 @@ a > img {
 	margin:0 auto;
 }
 
-/* .fant-image{
-	display: block
-} */
+.fant-image{
+  max-width: 100%
+}

@@ -545,32 +545,9 @@ export default {
       st.innerHTML = '.el-select-dropdown.' + className + '{top:' + top + 'px !important}'
       document.getElementsByTagName('body')[0].appendChild(st)
     },
-    checkContent () { // 检查编辑框中的图片是否已上传完毕
-      let editor = this.$refs['editor'].editor
-      let imgs = editor.editable().find('img')
-      let pass = true
-      for (let i = 0; i < imgs.count(); i++) {
-        let img = imgs.getItem(i)
-        // Assign src once, as it might be a big string, so there's no point in duplicating it all over the place.
-        let imgSrc = img.getAttribute('src')
-        let imgClass = img.getAttribute('class')
-        // Image have to contain src=data:...
-        let isDataInSrc = imgSrc && imgSrc.substring(0, 5) === 'data:'
-        // 是否拖拽按钮
-        let isDragIcon = imgClass && imgClass.indexOf('cke_widget_drag_handler') !== -1
-        let isFantuan = imgSrc.indexOf('fantuanlife.com') !== -1
-        if ((isDataInSrc && !isDragIcon) || (!isDataInSrc && !isFantuan)) {
-          pass = false
-        }
-      }
-      if (!pass) {
-        uploadUtil.tryUploadOne(editor)
-      }
-      return pass
-    },
     preview (e) {
       console.log('预览')
-      if (this.checkContent()) {
+      if (uploadUtil.checkContent(this.$refs['editor'].editor)) {
         // 预览
         this.saveContent(e, true)
       } else {
@@ -580,7 +557,7 @@ export default {
     },
     publish () {
       console.log('发布')
-      if (this.checkContent()) {
+      if (uploadUtil.checkContent(this.$refs['editor'].editor)) {
         // 发布
       } else {
         // 提示编辑器中有图片未上传
@@ -649,7 +626,7 @@ export default {
         console.log('保存，编辑器内容为:', this.$refs['editor'].getData()) // 执行保存操作
         eve.preventDefault()
         eve.stopPropagation()
-        if (!(this.$refs['editor'].editor && this.checkContent() && sessionStorage.getItem('token'))) { // 编辑框未初始化完成、编辑框里的图片已上传完毕、用户未登录
+        if (!(this.$refs['editor'].editor && uploadUtil.checkContent(this.$refs['editor'].editor) && sessionStorage.getItem('token'))) { // 编辑框未初始化完成、编辑框里的图片已上传完毕、用户未登录
           return false
         }
         let _content = {}
