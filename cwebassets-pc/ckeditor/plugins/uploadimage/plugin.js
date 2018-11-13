@@ -79,7 +79,12 @@
 							}
 						}
 					})
-					return img;
+
+					var element = new CKEDITOR.dom.element('p');
+					element.setStyle('text-align','center')
+					element.setHtml(img.getOuterHtml() )
+
+					return element;
 				},
 
 				parts: {

@@ -71,12 +71,13 @@ export default {
 
     return new Blob(byteArrays, { type: contentType })
   },
-  selectFile (callback) {
+  selectFiles (callback) {
     let input = document.createElement('input')
     input.setAttribute('type', 'file')
+    input.setAttribute('multiple', 'multiple')
     input.onchange = (e) => {
-      let file = e.currentTarget.files[0]
-      callback(file)
+      let files = e.currentTarget.files
+      callback(files)
     }
     input.click()
   },

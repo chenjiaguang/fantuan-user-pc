@@ -201,7 +201,7 @@
 							// 	CKEDITOR.fileTools.bindNotifications( editor, loader );
 							// }
 
-							data.dataValue += el.getOuterHtml();
+							data.dataValue += '<br/>'+el.getOuterHtml();
 						}
 					}
 				}

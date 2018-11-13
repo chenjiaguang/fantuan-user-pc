@@ -26,7 +26,7 @@ export default {
     }
   },
   mounted () {
-    window.fantuanUpload = () => uploadUtil.selectFile(this.uploadFile)
+    window.fantuanUpload = () => uploadUtil.selectFiles(this.uploadFiles)
     window.fantuanFileToDataSrc = (file) => uploadUtil.getDataSrc(file)
     window.tryUploadOne = (editor) => uploadUtil.tryUploadOne(editor)
 
@@ -62,9 +62,12 @@ export default {
       return description.length
     },
     // 上传文件回调
-    async uploadFile (file) {
-      let datasrc = await uploadUtil.getDataSrc(file)
-      this.editor.insertHtml(`<img src="${datasrc}" class='fant-image'/>`)
+    async uploadFiles (files) {
+      for (let i = 0; i < files.length; i++) {
+        let file = files[i]
+        let datasrc = await uploadUtil.getDataSrc(file)
+        this.editor.insertHtml(`<br/><p style='text-align: center;'><img src="${datasrc}" class='fant-image'/></p>`)
+      }
       uploadUtil.tryUploadOne(this.editor)
     },
     // 编辑器初始化
@@ -115,24 +118,25 @@ export default {
 .upload {
   /* display: none; */
 }
-.ft-editor /deep/ .cke{
-  border-color: #D2D2D2;
+.ft-editor /deep/ .cke {
+  border-color: #d2d2d2;
   box-shadow: unset;
 }
-.ft-editor /deep/ .cke_bottom{
-  background: #F5F5F5;
+.ft-editor /deep/ .cke_bottom {
+  background: #f5f5f5;
 }
-.ft-editor /deep/ .cke_path_item, .ft-editor /deep/ .cke_path_empty{
+.ft-editor /deep/ .cke_path_item,
+.ft-editor /deep/ .cke_path_empty {
   color: #666;
 }
-.text-num{
+.text-num {
   position: absolute;
   top: 0;
   right: 12px;
   line-height: 38px;
   font-size: 12px;
 }
-.text-num-max{
-  color: #FF4242
+.text-num-max {
+  color: #ff4242;
 }
 </style>
