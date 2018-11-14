@@ -77,7 +77,7 @@ export default {
       let img = imgs.getItem(i)
       let imgSrc = img.getAttribute('src')
       let tempName = img.getAttribute('data-tempName')
-      if (imgSrc && imgSrc.substring(0, 5) !== 'data:' && imgSrc.indexOf('fantuanlife.com') === -1 && (!tempName)) {
+      if (imgSrc && imgSrc.substring(0, 5) !== 'data:' && imgSrc.indexOf('fantuan.cn') === -1 && (!tempName)) {
         let dataSrc = await new Promise(function (resolve, reject) {
           let img = new Image()
           img.crossOrigin = 'Anonymous'

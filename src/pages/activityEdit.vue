@@ -242,7 +242,7 @@
         </div>
       </div>
       <div class="agreement">
-        <el-checkbox class="agreement-checkbox" v-model="form.agreement" disabled>我同意<a target="_blank" href="https://fanttest.fantuanlife.com/h5/agreement?type=activity">《范团活动发布协议》</a></el-checkbox>
+        <el-checkbox class="agreement-checkbox" v-model="form.agreement" disabled>我同意<a target="_blank" href="https://fanttest.fantuan.cn/h5/agreement?type=activity">《范团活动发布协议》</a></el-checkbox>
       </div>
     </div>
     <us :onlyCopyright="false" />
@@ -560,7 +560,7 @@ export default {
         let isDataInSrc = imgSrc && imgSrc.substring(0, 5) === 'data:'
         // 是否拖拽按钮
         let isDragIcon = imgClass && imgClass.indexOf('cke_widget_drag_handler') !== -1
-        let isFantuan = imgSrc.indexOf('fantuanlife.com') !== -1
+        let isFantuan = imgSrc.indexOf('fantuan.cn') !== -1
         if ((isDataInSrc && !isDragIcon) || (!isDataInSrc && !isFantuan)) {
           pass = false
         }
