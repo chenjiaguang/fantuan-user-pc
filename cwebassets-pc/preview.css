@@ -40,3 +40,7 @@
 .no-content {
   display: none !important
 }
+
+.fant-image{
+  max-width: 100%
+}

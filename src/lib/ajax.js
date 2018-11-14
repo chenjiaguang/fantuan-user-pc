@@ -6,16 +6,20 @@ import toast from '../components/toast'
 // checkLogin:bool:检查登录
 axios.defaults.method = 'post'
 axios.interceptors.request.use(function (config) {
+  if (config.method.toUpperCase() === 'GET') {
+    config.headers.method = 'get'
+  }
   if (!config.data) config.data = {}
   // 在发送请求之前做些什么
   // window.localStorage.token = 'c46bb5b5d0f54013bcdf75a6ebf967b1'
   if (config.data instanceof FormData) {
-    config.data.append('token', config.data.token || window.localStorage.token || '')
+    config.data.append('token', config.data.token || window.sessionStorage.token || '')
   } else if (typeof (config.data) === 'string') {
-    config.data += '&token=' + (config.data.token || window.localStorage.token || '')
+    config.data += '&token=' + (config.data.token || window.sessionStorage.token || '')
   } else {
     config.data = JSON.parse(JSON.stringify(config.data))
-    config.data.token = config.data.token || window.localStorage.token || ''
+    config.data.token = config.data.token || window.sessionStorage.token || ''
+    // config.data.token = '9126bd1bab364d7399261c2757e35b22'
     config.data.origin = 'H5'
   }
   if (config.token || config.data.token) { // 如果传入了token，将token放入headers中
@@ -32,7 +36,6 @@ axios.interceptors.request.use(function (config) {
 })
 axios.interceptors.response.use(function (res) {
   // 对响应数据做点什么
-  console.log('res', res)
   if (res.data.msg && res.data.error !== 0 && res.data.error !== '0') {
     if (res.config.dontToast !== true) {
       toast(res.data.msg, 2000, () => { })

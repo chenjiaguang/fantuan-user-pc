@@ -25,6 +25,7 @@ For a detailed explanation on how things work, check out the [guide](http://vuej
 
 ckeditor自定义源码部分
 core/selection.js 重要修改
+core/tools.js 卡顿修改
 clipboard/plugin.js 删除剪贴板过滤
 cloudservices/plugin.js fileUploadRequest fileUploadResponse  清空内容
 easyimage/plugin.js 删除paste

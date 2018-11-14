@@ -169,8 +169,7 @@
         <div class="form-item clearfix">
           <div class="form-left fl required">活动详情</div>
           <div class="form-right fl" style="width:793px;position: relative;">
-            <editor ref="editor" @keydown="saveContent" @textnumchange="textnumchange"/>
-            <div class="text-num" :class="{'text-num-max':(textNum>10000)}">字数：{{textNum}} / 10000</div>
+            <editor ref="editor" @keydown="saveContent"/>
           </div>
         </div>
       </div>
@@ -291,7 +290,6 @@ export default {
     console.log('imageUploadUrl', this.$imageUploadUrl)
     return {
       preview_url: '',
-      textNum: 0,
       showLocationOptions: false,
       upload_data: {},
       uploadLoading: false,
@@ -547,32 +545,9 @@ export default {
       st.innerHTML = '.el-select-dropdown.' + className + '{top:' + top + 'px !important}'
       document.getElementsByTagName('body')[0].appendChild(st)
     },
-    checkContent () { // 检查编辑框中的图片是否已上传完毕
-      let editor = this.$refs['editor'].editor
-      let imgs = editor.editable().find('img')
-      let pass = true
-      for (let i = 0; i < imgs.count(); i++) {
-        let img = imgs.getItem(i)
-        // Assign src once, as it might be a big string, so there's no point in duplicating it all over the place.
-        let imgSrc = img.getAttribute('src')
-        let imgClass = img.getAttribute('class')
-        // Image have to contain src=data:...
-        let isDataInSrc = imgSrc && imgSrc.substring(0, 5) === 'data:'
-        // 是否拖拽按钮
-        let isDragIcon = imgClass && imgClass.indexOf('cke_widget_drag_handler') !== -1
-        let isFantuan = imgSrc.indexOf('fantuan.cn') !== -1
-        if ((isDataInSrc && !isDragIcon) || (!isDataInSrc && !isFantuan)) {
-          pass = false
-        }
-      }
-      if (!pass) {
-        this.$refs['editor'].tryUploadAll && this.$refs['editor'].tryUploadAll()
-      }
-      return pass
-    },
     preview (e) {
       console.log('预览')
-      if (this.checkContent()) {
+      if (uploadUtil.checkContent(this.$refs['editor'].editor)) {
         // 预览
         this.saveContent(e, true)
       } else {
@@ -582,7 +557,7 @@ export default {
     },
     publish () {
       console.log('发布')
-      if (this.checkContent()) {
+      if (uploadUtil.checkContent(this.$refs['editor'].editor)) {
         // 发布
       } else {
         // 提示编辑器中有图片未上传
@@ -651,7 +626,7 @@ export default {
         console.log('保存，编辑器内容为:', this.$refs['editor'].getData()) // 执行保存操作
         eve.preventDefault()
         eve.stopPropagation()
-        if (!(this.$refs['editor'].editor && this.checkContent() && sessionStorage.getItem('token'))) { // 编辑框未初始化完成、编辑框里的图片已上传完毕、用户未登录
+        if (!(this.$refs['editor'].editor && uploadUtil.checkContent(this.$refs['editor'].editor) && sessionStorage.getItem('token'))) { // 编辑框未初始化完成、编辑框里的图片已上传完毕、用户未登录
           return false
         }
         let _content = {}
@@ -890,9 +865,6 @@ export default {
         eve.returnValue = false
         eve.preventDefault && eve.preventDefault()
       }
-    },
-    textnumchange (num) {
-      this.textNum = num
     }
   },
   watch: {
@@ -1503,16 +1475,6 @@ export default {
   height: 40px;
   line-height: 40px;
   padding: 0 15px;
-}
-.text-num{
-  position: absolute;
-  top: 0;
-  right: 12px;
-  line-height: 38px;
-  font-size: 12px;
-}
-.text-num-max{
-  color: #FF4242
 }
 </style>
 

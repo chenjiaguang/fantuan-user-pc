@@ -201,7 +201,7 @@
 							// 	CKEDITOR.fileTools.bindNotifications( editor, loader );
 							// }
 
-							data.dataValue += el.getOuterHtml();
+							data.dataValue += '<br/>'+el.getOuterHtml();
 						}
 					}
 				}
@@ -275,7 +275,7 @@
 
 					// Set style to the wrapper if it still exists.
 					newStyle = 'cke_upload_' + loader.status;
-					if ( widget.wrapper && newStyle != oldStyle ) {
+					if ( widget.wrapper && newStyle != oldStyle &&!(loader.status == 'error' || loader.status == 'abort')) {
 						oldStyle && widget.wrapper.removeClass( oldStyle );
 						widget.wrapper.addClass( newStyle );
 						oldStyle = newStyle;
@@ -283,7 +283,7 @@
 
 					// Remove widget on error or abort.
 					if ( loader.status == 'error' || loader.status == 'abort' ) {
-						editor.widgets.del( widget );
+						// editor.widgets.del( widget );
 					}
 
 				} );

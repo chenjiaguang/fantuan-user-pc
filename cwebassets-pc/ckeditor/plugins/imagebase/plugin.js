@@ -530,15 +530,7 @@
 			widget.parts.caption.data( 'cke-caption-placeholder', false );
 		}
 
-		function setVisibility( caption, isVisible ) {
-			caption.data( 'cke-caption-active', isVisible );
-			caption.data( 'cke-caption-hidden', !isVisible );
-			if (!isVisible) {
-				caption.addClass('no-content')
-			}else{
-				caption.removeClass('no-content')
-			}
-		}
+
 
 		/**
 		 * The widget feature dedicated for displaying a caption under the widget.
@@ -635,11 +627,14 @@
 					} else if ( !sender || ( sender.equals( caption ) && sender.data( 'cke-caption-placeholder' ) ) ) {
 						removePlaceholder( this );
 					}
-
-					setVisibility( caption, true );
-				} else if ( isEmptyOrHasPlaceholder( this ) ) {
-					removePlaceholder( this );
-					setVisibility( caption, false );
+				} else {
+					if ( isEmptyOrHasPlaceholder( this ) ) {
+						addPlaceholder( this );
+						caption.addClass('no-content')
+					}else{
+						removePlaceholder( this );
+						caption.removeClass('no-content')
+					}
 				}
 			}
 		};
