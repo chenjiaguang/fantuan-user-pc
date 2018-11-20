@@ -3,13 +3,16 @@
 // see http://vuejs-templates.github.io/webpack for documentation.
 
 const path = require('path')
+const prodEnv = require('./prod.env')
+const testEnv = require('./test.env')
+const devEnv = require('./dev.env')
 
 module.exports = {
   dev: {
 
     // Paths
     assetsSubDirectory: 'cwebassets-pc',
-    assetsPublicPath: '/pch5/',
+    assetsPublicPath: JSON.parse(devEnv.ASSETS_PUBLIC_PATH),
     proxyTable: [{
       context: ['/jv',],
       target: 'http://fanttest.fantuanlife.com',
@@ -46,7 +49,9 @@ module.exports = {
 
     cssSourceMap: true
   },
-
+  test: {
+    assetsPublicPath: JSON.parse(testEnv.ASSETS_PUBLIC_PATH),
+  },
   build: {
     // Template for index.html
     index: path.resolve(__dirname, '../temp/index.html'),
@@ -54,7 +59,7 @@ module.exports = {
     // Paths
     assetsRoot: path.resolve(__dirname, '../temp'),
     assetsSubDirectory: 'cwebassets-pc',
-    assetsPublicPath: '/pch5/',
+    assetsPublicPath: JSON.parse(prodEnv.ASSETS_PUBLIC_PATH),
 
     /**
      * Source Maps
