@@ -10,7 +10,7 @@ import '@/iconfont/iconfont.css'
 // if (process.env.NODE_ENV !== 'production') { // 非正式环境包，就实例化vconsole
 //   new VConsole() // 初始化
 // }
-Vue.prototype.$assetsPublicPath = process.env.ASSETS_PUBLIC_PATH
+Vue.prototype.$assetsPublicPath = process.env.ASSETS_PUBLIC_PATH === '/' ? '' : process.env.ASSETS_PUBLIC_PATH
 Vue.prototype.$apiDomain = process.env.API_DOMAIN
 Vue.prototype.$apiDomainHttps = process.env.API_DOMAIN_HTTPS
 Vue.prototype.$useHttps = process.env.HTTPS
