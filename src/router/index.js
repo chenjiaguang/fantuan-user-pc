@@ -14,8 +14,12 @@ const router = new Router({
   routes: [
     {
       path: prefix + '/',
-      name: 'HelloWorld',
-      component: HelloWorld
+      name: 'Index',
+      component: ScanCode,
+      meta: {
+        title: '扫码编辑',
+        keepAlive: false
+      }
     },
     {
       path: prefix + '/testEditor',
