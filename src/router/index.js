@@ -8,7 +8,7 @@ const ActivityEdit = resolve => require(['@/pages/activityEdit'], resolve)
 const Success = resolve => require(['@/pages/success'], resolve)
 
 Vue.use(Router)
-let prefix = '/pch5'
+let prefix = ''
 
 const router = new Router({
   routes: [
