@@ -29,7 +29,7 @@ config.allowedContent = {
 }
 config.disallowedContent = 'script; *[on*]'
 // config.removePlugins = 'image'
-config.extraPlugins = ['fantuanimageuploader']
+config.extraPlugins = ['fantuanimageuploader', 'dragresize']
 config.imageUploadUrl = ' '
 // config.extraAllowedContent = '*(*)' // 允许class属性
 
