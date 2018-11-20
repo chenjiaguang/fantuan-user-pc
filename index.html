@@ -1,26 +1,23 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>活动编辑</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <!-- built files will be auto injected -->
-    <script src="<%=process.env.ASSETS_PUBLIC_PATH+'cwebassets-pc/spark-md5.min.js'%>"></script>
 
-    <!-- 源码版js -->
-    <!-- <script src="<%=process.env.ASSETS_PUBLIC_PATH+'cwebassets-pc/ckeditor/ckeditor.js'%>"></script> -->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>活动编辑</title>
+</head>
 
-    <!-- 编译版js -->
-    <!-- <script src="<%=process.env.ASSETS_PUBLIC_PATH+'cwebassets-pc/ckeditor/dev/builder/release/ckeditor/ckeditor.js'%>"></script> -->
+<body>
+  <div id="app"></div>
+  <!-- built files will be auto injected -->
+  <script src="<%=process.env.ASSETS_PUBLIC_PATH+'cwebassets-pc/spark-md5.min.js'%>"></script>
 
-    <!-- 源码版js -->
-    <!-- <script src="/cwebassets-pc/ckeditor/ckeditor.js"></script> -->
+  <!-- 源码版js -->
+  <!-- <script src="<%=process.env.ASSETS_PUBLIC_PATH+'cwebassets-pc/ckeditor/ckeditor.js'%>"></script> -->
 
-    <!-- 编译版js -->
-    <!-- 因使用cdn回源 所以每次js修改时 都需要更改文件名（如果不改文件名 则不会回源使用新的js）-->
-    <script src="/cwebassets-pc/ckeditor/dev/builder/release/ckeditor/ckeditor.js"></script>
-  </body>
+  <!-- 编译版js 每次编译完记得复制新的release地址(解决回源问题)-->
+  <script src="<%=process.env.ASSETS_PUBLIC_PATH+'cwebassets-pc/ckeditor/dev/builder/release1542696683043624800/ckeditor/ckeditor.js'%>"></script>
+
+</body>
+
 </html>
