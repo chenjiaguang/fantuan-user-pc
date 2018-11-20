@@ -8,6 +8,6 @@ module.exports = merge(prodEnv, {
   HTTPS: _https,
   ASSETS_PUBLIC_PATH: '"/pch5/"',
   NODE_ENV: '"development"',
-  API_DOMAIN: '"http://fanttest.fantuanlife.com"',
-  API_DOMAIN_HTTPS: '"https://fanttest.fantuanlife.com"'
+  API_DOMAIN: '"http://fanttest.fantuan.cn"',
+  API_DOMAIN_HTTPS: '"https://fanttest.fantuan.cn"'
 })

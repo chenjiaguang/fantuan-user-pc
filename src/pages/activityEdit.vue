@@ -241,7 +241,7 @@
         </div>
       </div>
       <div class="agreement">
-        <el-checkbox class="agreement-checkbox" v-model="form.agreement" disabled>我同意<a target="_blank" href="https://fanttest.fantuanlife.com/h5/agreement?type=activity">《范团活动发布协议》</a></el-checkbox>
+        <el-checkbox class="agreement-checkbox" v-model="form.agreement" disabled>我同意<a target="_blank" href="https://fanttest.fantuan.cn/h5/agreement?type=activity">《范团活动发布协议》</a></el-checkbox>
       </div>
     </div>
     <us :onlyCopyright="false" />

@@ -118,7 +118,7 @@ export default {
 
       let imgSrc = img.getAttribute('src')
       let isDataInSrc = imgSrc && imgSrc.substring(0, 5) === 'data:'
-      let isOtherHostSrc = (!isDataInSrc) && imgSrc && (imgSrc.indexOf('fantuanlife.com') === -1)
+      let isOtherHostSrc = (!isDataInSrc) && imgSrc && (imgSrc.indexOf('fantuan.cn') === -1)
 
       if (isDataInSrc && this.isDataInSrcImageCanUpload(img)) {
         let file = this.dataToFile(imgSrc)
@@ -192,7 +192,7 @@ export default {
       let isDataInSrc = imgSrc && imgSrc.substring(0, 5) === 'data:'
       // 是否拖拽按钮
       let canUpload = this.isDataInSrcImageCanUpload(img)
-      let isFantuan = imgSrc.indexOf('fantuanlife.com') !== -1
+      let isFantuan = imgSrc.indexOf('fantuan.cn') !== -1
       if ((isDataInSrc && canUpload) || (!isDataInSrc && !isFantuan)) {
         pass = false
         break

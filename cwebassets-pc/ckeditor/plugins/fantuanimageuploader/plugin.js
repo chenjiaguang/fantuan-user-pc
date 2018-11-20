@@ -6,7 +6,7 @@
 				//upload需要注册
 				window.fantuanUpload()
 
-				// editor.insertHtml(`<img src="http://staticcdntest.fantuanlife.com/uimage/b1/5c/11/3a/b15c113aeddbeb606d938010b88cf8e6.jpg?x-oss-process=image/format,jpg" width="540" height="258">`);
+				// editor.insertHtml(`<img src="http://staticcdntest.fantuan.cn/uimage/b1/5c/11/3a/b15c113aeddbeb606d938010b88cf8e6.jpg?x-oss-process=image/format,jpg" width="540" height="258">`);
 			}
 		});
 		editor.ui.addButton('Fantuanimage', {
