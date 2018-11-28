@@ -241,7 +241,7 @@
         </div>
       </div>
       <div class="agreement">
-        <el-checkbox class="agreement-checkbox" v-model="form.agreement" disabled>我同意<a target="_blank" href="https://fanttest.fantuan.cn/h5/agreement?type=activity">《范团活动发布协议》</a></el-checkbox>
+        <el-checkbox class="agreement-checkbox" v-model="form.agreement" disabled>我同意<a target="_blank" href="https://fant.fantuan.cn/h5/agreement?type=activity">《范团活动发布协议》</a></el-checkbox>
       </div>
     </div>
     <us :onlyCopyright="false" />
@@ -701,7 +701,7 @@ export default {
             if (!isPreview) {
               this.$toast('保存成功')
             } else {
-              this.preview_url = 'http://192.168.1.199:8080/h5/activity/detail?isPreview=true&circleId=' + this.overview.circle.id + '&token=' + sessionStorage.getItem('token')
+              this.preview_url = 'http://fant.fantuan.cn/h5/activity/detail?isPreview=true&circleId=' + this.overview.circle.id + '&token=' + sessionStorage.getItem('token')
             }
           }
         }).catch(err => {
