@@ -761,6 +761,9 @@ export default {
       // return false
       this.$ajax('/jv/qz/draft/activity/search', {data: rData}).then(res => {
         if (res && res.data && !res.error) { // 获取草稿成功
+          if (!res.data.content) { // 不存在草稿，不做任何操作
+            return false
+          }
           let contentObj = JSON.parse(res.data.content)
           console.log('contentObj', contentObj)
           if (contentObj && contentObj.form) {
