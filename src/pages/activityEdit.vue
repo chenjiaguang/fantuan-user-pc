@@ -256,6 +256,7 @@
 
 <script>
 import Vue from 'vue'
+import utils from '@/lib/utils'
 import TopNav from '@/components/TopNav'
 import Us from '@/components/Us'
 import LoadingIcon from '@/components/LoadingIcon'
@@ -289,6 +290,7 @@ export default {
     let self = this
     console.log('imageUploadUrl', this.$imageUploadUrl)
     return {
+      publishing: false,
       preview_url: '',
       showLocationOptions: false,
       upload_data: {},
@@ -559,8 +561,54 @@ export default {
       console.log('发布')
       if (uploadUtil.checkContent(this.$refs['editor'].editor)) {
         // 发布
+        if (this.publishing) { // 正在请求发布，返回
+          return false
+        }
+        let fee = this.form.ticket_data.map(item => {
+          return {
+            name: item.name,
+            prices: item.price,
+            max: item.amount
+          }
+        })
+        let rData = {
+          cover: this.form.cover.id,
+          title: this.form.name,
+          startTime: utils.formatDateToTime(new Date(this.form.activity_time.start)),
+          endTime: utils.formatDateToTime(new Date(this.form.activity_time.end)),
+          deadline: this.form.deadline.toString() === '1' ? utils.formatDateToTime(new Date(this.form.activity_time.end)) : utils.formatDateToTime(new Date(this.form.deadline_date)),
+          address: this.form.address.toString() === '1' ? '线上活动' : this.form.address_data.location,
+          longitude: this.form.address_data.lnglat[0],
+          latitude: this.form.address_data.lnglat[1],
+          insurance: this.form.has_insurance.toString() === '1',
+          neadName: this.form.form_list.indexOf('name') !== -1,
+          neadSex: this.form.form_list.indexOf('gender') !== -1,
+          neadIdcard: this.form.form_list.indexOf('idcard') !== -1,
+          phone: this.form.sponsor_tel,
+          rendering_type: '1',
+          cid: this.overview.circle.id,
+          online: this.form.address.toString() === '1',
+          content: this.$refs['editor'].editor.getData(),
+          fee: JSON.stringify(fee),
+          maxTicket: this.form.ticket_limit
+        }
+        console.log('发布数据', rData)
+        this.publishing = true
+        this.$ajax('/jv/qz/publish/activity', {data: rData}).then(res => {
+          console.log('发布成功', res)
+          this.publishing = false
+          if (res && !res.error) { // 发布成功
+
+          } else { // 发布失败
+
+          }
+        }).catch(err => { // 发布失败
+          this.publishing = false
+          console.log('发布错误', err)
+        })
       } else {
         // 提示编辑器中有图片未上传
+        this.$toast('有未上传的图片，请稍后再试')
       }
     },
     beforeCoverUpload (file) {
@@ -672,6 +720,45 @@ export default {
         token: token,
         circleId: circleId
       }
+      // this.$ajax('/jv/qz/dynamics', {data: {
+      //   token: 'lcaKiq5GIC_FHqubOBcI6FUKaL8N171U',
+      //   pn: '1',
+      //   limit: '20',
+      //   snapshot: '0'
+      // }}).then(res => {
+      //   if (res && res.data && !res.error) { // 获取草稿成功
+      //     let contentObj = JSON.parse(res.data.content)
+      //     console.log('contentObj', contentObj)
+      //     if (contentObj && contentObj.form) {
+      //       this.form = contentObj.form
+      //       if (contentObj.form.address_data && contentObj.form.address_data.city && this.amap_data.districtsearch) {
+      //         this.cityChange(contentObj.form.address_data.city, true)
+      //       }
+      //     }
+      //     if (contentObj && contentObj.selectOptions) {
+      //       this.selectOptions = contentObj.selectOptions
+      //       if (contentObj.form.address_data.location && contentObj.form.address_data.lnglat && this.amap_data.districtsearch) {
+
+      //       }
+      //       this.resetMarker()
+      //     }
+      //     if (contentObj && contentObj.form && contentObj.form.editorContent) {
+      //       const create = () => {
+      //         if (this.$refs['editor'] && this.$refs['editor'].create) {
+      //           this.$refs['editor'].create(contentObj.form.editorContent)
+      //         } else {
+      //           setTimeout(create, 100)
+      //         }
+      //       }
+      //       create()
+      //     }
+      //   } else { // 获取草稿失败
+
+      //   }
+      // }).catch(err => {
+      //   console.log('获取草稿失败', err)
+      // })
+      // return false
       this.$ajax('/jv/qz/draft/activity/search', {data: rData}).then(res => {
         if (res && res.data && !res.error) { // 获取草稿成功
           let contentObj = JSON.parse(res.data.content)

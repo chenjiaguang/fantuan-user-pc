@@ -64,6 +64,7 @@ export default {
       if (!qrcode) {
         return false
       }
+      sessionStorage.clear()
       let rData = {
         webLoginCode: qrcode
       }
@@ -95,9 +96,9 @@ export default {
     console.log('mounted', this.getQrcode(8))
     this.qrcode = this.getQrcode(6)
     this.getUserInfo(this.qrcode)
-    setTimeout(() => {
-      this.login()
-    })
+    // setTimeout(() => {
+    //   this.login()
+    // })
   }
 }
 </script>
