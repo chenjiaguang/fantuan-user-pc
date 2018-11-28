@@ -73,7 +73,7 @@ export default {
         if (res && res.data && !res.error) { // 获取用户信息成功
           sessionStorage.setItem('token', res.data.token)
           sessionStorage.setItem('userId', res.data.uid)
-          sessionStorage.setItem('userName', res.data.extraInfo.userName)
+          sessionStorage.setItem('userName', res.data.userName)
           sessionStorage.setItem('circleId', res.data.extraInfo.circleId)
           sessionStorage.setItem('circleName', res.data.extraInfo.circleName)
           this.$router.replace({name: 'ActivityEdit'})
